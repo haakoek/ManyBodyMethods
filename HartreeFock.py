@@ -8,6 +8,8 @@ def energy(spatial_index):
 		return 2.0
 	elif ((spatial_index == 4) | (spatial_index == 5) | (spatial_index == 6)):
 		return 3.0
+	elif ( (spatial_index == 7) | (spatial_index == 8) | (spatial_index == 9) | (spatial_index == 10) ):
+		return 4.0
 		
 def delta(i,j):
 	if(i == j):
@@ -26,8 +28,8 @@ def density_matrix(U,L,N):
 	
 def QRPS(q,r,p,s,w):
 	
-	key1 = str(q+1)+str(r+1) + str(p+1) + str(s+1)
-	key2 = str(q+1)+str(r+1) + str(s+1) + str(p+1)
+	key1 = str(q)+str(r) + str(p) + str(s)
+	key2 = str(q)+str(r) + str(s) + str(p)
 	
 	if((w.has_key(key1) == True) and (w.has_key(key2) == True)):
 		qrps = w[key1]-0.5*w[key2]

@@ -28,6 +28,8 @@ def energy(spatial_index):
 		return 2.0
 	elif ((spatial_index == 4) | (spatial_index == 5) | (spatial_index == 6)):
 		return 3.0
+	elif ( (spatial_index == 7) | (spatial_index == 8) | (spatial_index == 9) | (spatial_index == 10) ):
+		return 4.0
 
 def computeFockMatrix(N,L,w):
 	F = zeros((L/2,L/2))
@@ -180,7 +182,8 @@ def computeT2Amplitudes(N,L,w,F,t1_old,t2_old):
 
 from HartreeFock import *
 
-inFile = open('coulomb.dat','r')
+#inFile = open('coulomb2.dat','r')
+inFile = open('HO_2d_10_nonzero.dat','r')
 w = {}
 
 for line in inFile:
@@ -189,22 +192,23 @@ for line in inFile:
 	val = float(tmp[4])
 	w[key] = val
 
-L = 12
+L = 20
 N = 2
 
 F, U, eps_old, ERHF = computeHartreeFockSolution(L,N,w)
 t1_old, t2_old = initialize(N/2,L,w,F)
 Energy = ECCSD(ERHF,t1_old,t2_old,N/2,L,w,F)
 print Energy
-
+"""
 for i in range(1,20):
 	t1_new = computeT1Amplitudes(N/2,L,w,F,t1_old,t2_old)
 	t2_new = computeT2Amplitudes(N/2,L,w,F,t1_old,t2_old)
 	Energy = ECCSD(ERHF,t1_new,t2_new,N/2,L,w,F)
 	t1_old = t1_new
 	t2_old = t2_new
-	print Energy
- 
+
+print Energy
+""" 
 
 """
 t1_new = computeT1Amplitudes(N,L,w,F,t1_old,t2_old)
