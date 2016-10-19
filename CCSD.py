@@ -12,11 +12,11 @@ def QRPS(q,r,p,s,w):
 	key2 = str(q+1)+str(r+1) + str(s+1) + str(p+1)
 	
 	if((w.has_key(key1) == True) and (w.has_key(key2) == True)):
-		qrps = w[key1]-0.5*w[key2]
+		qrps = w[key1]- 0.5*w[key2]
 	elif ((w.has_key(key1) == True) and (w.has_key(key2) == False)):
 		qrps = w[key1]
 	elif ((w.has_key(key1) == False) and (w.has_key(key2) == True)):
-		qrps = -0.5*w[key2]
+		qrps = w[key2]-0.5*w[key2]
 	else:
 		qrps = 0.0
 	return qrps
@@ -38,8 +38,9 @@ def computeFockMatrix(N,L,w):
 				F[p,q] += QRPS(p+1,i+1,q+1,i+1,w)			
 	return F
 
-def initialize(N,L,w):
-	F_init = computeFockMatrix(N,L,w)
+def initialize(N,L,w,F_init):
+	
+	#F_init = computeFockMatrix(N,L,w)
 
 	t1_old = zeros((N, (L/2-N)))
 
@@ -57,7 +58,8 @@ def initialize(N,L,w):
 				for b in range(N,L/2):
 					D_ij_ab = F_init[i,i] + F_init[j,j] - F_init[a,a] - F_init[b,b]
 					t2_old[i,j,a-N,b-N] = QRPS(a+1,b+1,i+1,j+1,w)/D_ij_ab
-	return F_init, t1_old, t2_old	
+	
+	return t1_old, t2_old	
 
 #Extremely naive implementation of coupled-cluster amplitude equations.
 
@@ -176,6 +178,8 @@ def computeT2Amplitudes(N,L,w,F,t1_old,t2_old):
 					t2_new[i,j,a-N,b-N] = t2_new[i,j,a-N,b-N]/D_ij_ab  
 	return t2_new
 
+from HartreeFock import *
+
 inFile = open('coulomb.dat','r')
 w = {}
 
@@ -188,14 +192,27 @@ for line in inFile:
 L = 12
 N = 2
 
-				
-F, t1_old, t2_old = initialize(N,L,w)
+F, U, eps_old, ERHF = computeHartreeFockSolution(L,N,w)
+t1_old, t2_old = initialize(N/2,L,w,F)
+Energy = ECCSD(ERHF,t1_old,t2_old,N/2,L,w,F)
+print Energy
+
+for i in range(1,20):
+	t1_new = computeT1Amplitudes(N/2,L,w,F,t1_old,t2_old)
+	t2_new = computeT2Amplitudes(N/2,L,w,F,t1_old,t2_old)
+	Energy = ECCSD(ERHF,t1_new,t2_new,N/2,L,w,F)
+	t1_old = t1_new
+	t2_old = t2_new
+	print Energy
+ 
+
+"""
 t1_new = computeT1Amplitudes(N,L,w,F,t1_old,t2_old)
 t2_new = computeT2Amplitudes(N,L,w,F,t1_old,t2_old)
  
 Enew = ECCSD(0,t1_new,t2_new,N,L,w,F)
 print Enew
-
+"""
 
 
 

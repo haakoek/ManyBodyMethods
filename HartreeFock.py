@@ -122,22 +122,3 @@ def computeHartreeFockSolution(L,N,w):
 		eps_old = eps_new
 
 	return FD, U, eps_old, ERHF
-
-inFile = open('coulomb.dat','r')
-w = {}
-
-for line in inFile:
-	tmp = line.split()
-	key = tmp[0] + tmp[1] + tmp[2] + tmp[3]
-	val = float(tmp[4])
-	w[key] = val
-
-L = 12
-N = 2
-
-F, U, eps_old, ERHF = computeHartreeFockSolution(L,N,w)
-
-for i in range(0,N/2):
-	for a in range(N/2,L/2):
-		D_ia = F[i,i]-F[a,a]
-		print D_ia
