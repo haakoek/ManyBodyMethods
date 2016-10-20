@@ -67,7 +67,7 @@ for line in inFile:
 	
 inFile.close()
 
-N = 2
+N = 12
 
 exp_ref = expref(N,w)
 exp_ref_19 = exp_ref_refia(1,9,N,w)

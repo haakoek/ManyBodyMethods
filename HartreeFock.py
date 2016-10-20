@@ -106,10 +106,11 @@ def computeHartreeFockSolution(L,N,w):
 	U = identity(L/2)
 	D = density_matrix(U,L,N)
 	FD = compute_FockMatrix(D,L,w)
+	print FD
 	eps_old, U = diag_FD(FD)
 	max_iters = 30
 	ERHF = HF_Energy(eps_old,U,D,w,N,L)
-	print "ERHF = %.16f, from initial guess." % ERHF
+	#print "ERHF = %.16f, from initial guess." % ERHF
 
 	for k in range(1,max_iters):
 		D = density_matrix(U,L,N)
@@ -117,10 +118,10 @@ def computeHartreeFockSolution(L,N,w):
 		eps_new, U = diag_FD(FD)
 		ERHF = HF_Energy(eps_new,U,D,w,N,L)
 		#print eps_new
-		print "ERHF = %.18f, |eps_new - eps_old| = %g" % (ERHF,max(abs(eps_new-eps_old)))	
+		#print "ERHF = %.18f, |eps_new - eps_old| = %g" % (ERHF,max(abs(eps_new-eps_old)))	
 		if(max(abs(eps_new-eps_old)) < epsilon):
 			eps_old = eps_new		
 			break	
 		eps_old = eps_new
-
+	print ERHF
 	return FD, U, eps_old, ERHF
