@@ -160,6 +160,56 @@ def ECCSD(E0,t1,t2,N,L,w,F):
 
 	return ECCSD
 
+def computeT1Amplitudes(N,L,w,t1,t2,F):
+	tsingles = np.zeros((L-N,N))
+
+	for i in range(0,N):
+		for a in range(N,L):
+			
+			tsingles[a-N,i] = F[i,a]
+
+			for c in range(N,L):
+				if (c != a):
+					tsingles[a-N,i] += F[a,c]*t1[c-N,i]
+			for k in range(0,N):
+				if(i != k):
+					tsingles[a-N,i] -= F[k,i]*t1[a-N,k]
+
+			for k in range(0,N):
+				for c in range(N,L):
+					tsingles[a-N,i] += QRPS2(c,i,k,a,w)*t1[c-N,k]
+					tsingles[a-N,i] += F[k,c]*t2[a-N,c-N,i,k]
+
+			for k in range(0,N):
+				for c in range(N,L):
+					for d in range(N,L):
+						tsingles[a-N,i] += 0.5*QRPS2(c,d,k,a,w)*t2[c-N,d-N,k,i]
+						tsingles[a-N,i] += QRPS2(c,d,k,a,w)*t1[c-N,k]*t1[d-N,i]
+
+			for k in range(0,N):
+				for l in range(0,N):
+					for c in range(N,L):
+						tsingles[a-N,i] -= QRPS2(c,i,k,l,w)*t2[c-N,a-N,k,l]
+						tsingles[a-N,i] -= QRPS2(c,i,k,l,w)*t1[c-N,k]*t1[a-N,l]
+			
+			for k in range(0,N):
+				for c in range(N,L):
+					tsingles[a-N,i] -= F[k,c]*t1[c-N,i]*t1[a-N,k]
+
+			for k in range(0,N):
+				for l in range(0,N):
+					for c in range(N,L):
+						for d in range(N,L):
+							tsingles[a-N,i] -= QRPS2(c,d,k,l,w)*t1[c-N,k]*t1[d-N,i]*t1[a-N,l]
+							tsingles[a-N,i] += QRPS2(c,d,k,l,w)*t1[c-N,k]*t2[d-N,a-N,l,i]
+							tsingles[a-N,i] -= 0.5*QRPS2(c,d,k,l,w)*t2[c-N,d-N,k,i]*t1[a-N,l]
+							tsingles[a-N,i] -= 0.5*QRPS2(c,d,k,l,w)*t2[c-N,a-N,k,l]*t1[d-N,i]
+
+			Dia  = F[i,i] - F[a,a]
+			tsingles[a-N,i] /= Dia
+
+	return tsingles
+
 def computeT2Amplitudes(N,L,w,t1,t2,F):
 	
 	tdoubles = np.zeros( (L-N,L-N,N,N) )
@@ -303,6 +353,7 @@ print "<phi0 | H | phi0 > = %g" % Eref
 
 F = computeFockMatrix2(N,L,w)
 t1_old, t2_old = initialize(N,L,w,F)
+#t1_old = np.zeros((L-N,N))
 
 Eold = ECCSD(Eref,t1_old,t2_old,N,L,w,F)
 print Eref+Eold
@@ -310,11 +361,13 @@ iters = 1
 
 for k in range(1,20):
 
+	t1_new = computeT1Amplitudes(N,L,w,t1_old,t2_old,F)
 	t2_new = computeT2Amplitudes(N,L,w,t1_old,t2_old,F)
 	Enew = ECCSD(Eref,t1_old,t2_new,N,L,w,F)
 	
 	iters += 1
 	print Eref+Enew, abs(Enew-Eold), iters
+	t1_old = t1_new
 	t2_old = t2_new
 
 	if(abs(Enew-Eold) < prec):
@@ -322,4 +375,13 @@ for k in range(1,20):
 
 	Eold = Enew
 
-#For N=2, L=6, ECCSD = 3.152329
+#Magnus Lohnes results
+#N=2, L=6 , ECCSD = 3.152329
+#N=2, L=12, ECCSD = 3.038605
+#N=6, L=12, ECCSD = 21.419889
+
+#Test runs of program
+#N=2, L=6,  ECCSD = 3.15232754998, |E_{k+1}-E_{k}| = 6.10288365677e-09, iters = 12, time = 0m10.667s
+#N=2, L=12, ECCSD = 3.0338052862 , |E_{k+1}-E_{k}| = 2.33031102748e-09, iters = 13, time = 6m41.309s
+
+#N=6, L=12, ECCSD = 21.4140918765, |E_{k+1}-E_{k}| = 5.01567660027e-06, iters = 12, time = 51m30.894s
