@@ -219,8 +219,8 @@ def computeT2Amplitudes(N,L,w,t1,t2,F):
 						for l in range(0,N):
 							for c in range(N,L):
 								for d in range(N,L):
-									tdoubles[a-N,b-N,i,j] += QRPS2(c-N,d-N,k,l)*(0.25*t1[a-N,k]*t1[b-N,l]*t2[c-N,d-N,i,j] - t1[c-N,k]*t1[a-N,l]*t2[d-N,b-N,i,j] - 0.5*t2[a-N,c-N,i,j]*t2[b-N,d-N,k,l])
-									tdoubles[a-N,b-N,i,j] -= QRPS2(c-N,d-N,k,l)*(0.25*t1[b-N,k]*t1[a-N,l]*t2[c-N,d-N,i,j] - t1[c-N,k]*t1[b-N,l]*t2[d-N,a-N,i,j] - 0.5*t2[b-N,c-N,i,j]*t2[a-N,d-N,k,l])
+									tdoubles[a-N,b-N,i,j] += QRPS2(c-N,d-N,k,l,w)*(0.25*t1[a-N,k]*t1[b-N,l]*t2[c-N,d-N,i,j] - t1[c-N,k]*t1[a-N,l]*t2[d-N,b-N,i,j] - 0.5*t2[a-N,c-N,i,j]*t2[b-N,d-N,k,l])
+									tdoubles[a-N,b-N,i,j] -= QRPS2(c-N,d-N,k,l,w)*(0.25*t1[b-N,k]*t1[a-N,l]*t2[c-N,d-N,i,j] - t1[c-N,k]*t1[b-N,l]*t2[d-N,a-N,i,j] - 0.5*t2[b-N,c-N,i,j]*t2[a-N,d-N,k,l])
 
 					#P(ij)-terms
 					for c in range(N,L):
@@ -259,10 +259,10 @@ def computeT2Amplitudes(N,L,w,t1,t2,F):
 					for k in range(0,N):
 						for c in range(N,L):
 							for d in range(N,L):
-								tdoubles[a-N,b-N,i,j] += QRPS2(d,c,a,k)*t1[d-N,i]*t2[b-N,c-N,j,k] - QRPS2(c,d,k,b,w)*t1[c-N,i]*t1[a-N,k]*t1[d-N,j]
-								tdoubles[a-N,b-N,i,j] -= QRPS2(d,c,b,k)*t1[d-N,i]*t2[a-N,c-N,j,k] - QRPS2(c,d,k,a,w)*t1[c-N,i]*t1[b-N,k]*t1[d-N,j]
-								tdoubles[a-N,b-N,i,j] -= QRPS2(d,c,a,k)*t1[d-N,j]*t2[b-N,c-N,i,k] - QRPS2(c,d,k,b,w)*t1[c-N,j]*t1[a-N,k]*t1[d-N,i]	
-								tdoubles[a-N,b-N,i,j] += QRPS2(d,c,b,k)*t1[d-N,j]*t2[a-N,c-N,i,k] - QRPS2(c,d,k,a,w)*t1[c-N,j]*t1[b-N,k]*t1[d-N,i]
+								tdoubles[a-N,b-N,i,j] += QRPS2(d,c,a,k,w)*t1[d-N,i]*t2[b-N,c-N,j,k] - QRPS2(c,d,k,b,w)*t1[c-N,i]*t1[a-N,k]*t1[d-N,j]
+								tdoubles[a-N,b-N,i,j] -= QRPS2(d,c,b,k,w)*t1[d-N,i]*t2[a-N,c-N,j,k] - QRPS2(c,d,k,a,w)*t1[c-N,i]*t1[b-N,k]*t1[d-N,j]
+								tdoubles[a-N,b-N,i,j] -= QRPS2(d,c,a,k,w)*t1[d-N,j]*t2[b-N,c-N,i,k] - QRPS2(c,d,k,b,w)*t1[c-N,j]*t1[a-N,k]*t1[d-N,i]	
+								tdoubles[a-N,b-N,i,j] += QRPS2(d,c,b,k,w)*t1[d-N,j]*t2[a-N,c-N,i,k] - QRPS2(c,d,k,a,w)*t1[c-N,j]*t1[b-N,k]*t1[d-N,i]
 
 					for k in range(0,N):
 						for l in range(0,N):
@@ -276,10 +276,14 @@ def computeT2Amplitudes(N,L,w,t1,t2,F):
 						for l in range(0,N):
 							for c in range(N,L):
 								for d in range(N,L):
-									tdoubles[a-N,b-N,i,j] += QRPS2(c,d,k,l,w)*(t1[c-N]*t1[b-N,l]*t2[a-N,d-N,k,j] + 0.25*t1[c-N,i]*t1[a-N,k]*t1[d-N,j]*t1[b-N,l] + 0.5*t2[a-N,c-N,i,k]*t2[d-N,b-N,l,j])
-									tdoubles[a-N,b-N,i,j] -= QRPS2(c,d,k,l,w)*(t1[c-N]*t1[a-N,l]*t2[b-N,d-N,k,j] + 0.25*t1[c-N,i]*t1[b-N,k]*t1[d-N,j]*t1[a-N,l] + 0.5*t2[b-N,c-N,i,k]*t2[d-N,a-N,l,j])
-									tdoubles[a-N,b-N,i,j] -= QRPS2(c,d,k,l,w)*(t1[c-N]*t1[b-N,l]*t2[a-N,d-N,k,i] + 0.25*t1[c-N,j]*t1[a-N,k]*t1[d-N,i]*t1[b-N,l] + 0.5*t2[a-N,c-N,j,k]*t2[d-N,b-N,l,i])
-									tdoubles[a-N,b-N,i,j] += QRPS2(c,d,k,l,w)*(t1[c-N]*t1[a-N,l]*t2[b-N,d-N,k,i] + 0.25*t1[c-N,j]*t1[b-N,k]*t1[d-N,i]*t1[a-N,l] + 0.5*t2[b-N,c-N,j,k]*t2[d-N,a-N,l,i])
+									tdoubles[a-N,b-N,i,j] += QRPS2(c,d,k,l,w)*(t1[c-N,i]*t1[b-N,l]*t2[a-N,d-N,k,j] + 0.25*t1[c-N,i]*t1[a-N,k]*t1[d-N,j]*t1[b-N,l] + 0.5*t2[a-N,c-N,i,k]*t2[d-N,b-N,l,j])
+									tdoubles[a-N,b-N,i,j] -= QRPS2(c,d,k,l,w)*(t1[c-N,i]*t1[a-N,l]*t2[b-N,d-N,k,j] + 0.25*t1[c-N,i]*t1[b-N,k]*t1[d-N,j]*t1[a-N,l] + 0.5*t2[b-N,c-N,i,k]*t2[d-N,a-N,l,j])
+									tdoubles[a-N,b-N,i,j] -= QRPS2(c,d,k,l,w)*(t1[c-N,j]*t1[b-N,l]*t2[a-N,d-N,k,i] + 0.25*t1[c-N,j]*t1[a-N,k]*t1[d-N,i]*t1[b-N,l] + 0.5*t2[a-N,c-N,j,k]*t2[d-N,b-N,l,i])
+									tdoubles[a-N,b-N,i,j] += QRPS2(c,d,k,l,w)*(t1[c-N,j]*t1[a-N,l]*t2[b-N,d-N,k,i] + 0.25*t1[c-N,j]*t1[b-N,k]*t1[d-N,i]*t1[a-N,l] + 0.5*t2[b-N,c-N,j,k]*t2[d-N,a-N,l,i])
+
+					Dabij = F[i,i]+F[j,j] - F[a,a] - F[b,b]
+					tdoubles[a-N,b-N,i,j] /= Dabij
+	return tdoubles
 
 #####################################################################################
 inFile = open('coulomb2.dat','r')
@@ -292,13 +296,30 @@ for line in inFile:
 	w[key]  = val
 
 N = 2; L = 6
+prec = 1e-8
 
 Eref = computeEref(N,w)
-print Eref
+print "<phi0 | H | phi0 > = %g" % Eref
 
 F = computeFockMatrix2(N,L,w)
 t1_old, t2_old = initialize(N,L,w,F)
 
-Enew = ECCSD(Eref,t1_old,t2_old,N,L,w,F)
+Eold = ECCSD(Eref,t1_old,t2_old,N,L,w,F)
+print Eref+Eold
+iters = 1
 
-print Eref+Enew
+for k in range(1,20):
+
+	t2_new = computeT2Amplitudes(N,L,w,t1_old,t2_old,F)
+	Enew = ECCSD(Eref,t1_old,t2_new,N,L,w,F)
+	
+	iters += 1
+	print Eref+Enew, abs(Enew-Eold), iters
+	t2_old = t2_new
+
+	if(abs(Enew-Eold) < prec):
+		break
+
+	Eold = Enew
+
+#For N=2, L=6, ECCSD = 3.152329
