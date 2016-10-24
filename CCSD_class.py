@@ -475,6 +475,11 @@ class CCSD:
 						for d in range(N,L):
 							tsingles[a-N,i] += self.QRPS2(c,d,k,a)*t1[c-N,k]*t1[d-N,i]
 
+
+
+				Dia  = self.F[i,i] - self.F[a,a]
+				tsingles[a-N,i] /= Dia
+
 		return tsingles	
 
 	def computeT2AmplitudesWithIntermediates(self,t1,t2):
