@@ -336,6 +336,8 @@ def computeT2Amplitudes(N,L,w,t1,t2,F):
 	return tdoubles
 
 #####################################################################################
+import sys
+
 inFile = open('coulomb2.dat','r')
 w  = {}
 
@@ -345,7 +347,7 @@ for line in inFile:
 	val = float(tmp[4])
 	w[key]  = val
 
-N = 2; L = 6
+N = int(sys.argv[1]); L = int(sys.argv[2])
 prec = 1e-8
 
 Eref = computeEref(N,w)
@@ -358,6 +360,7 @@ t1_old, t2_old = initialize(N,L,w,F)
 Eold = ECCSD(Eref,t1_old,t2_old,N,L,w,F)
 print Eref+Eold
 iters = 1
+
 
 for k in range(1,20):
 
@@ -374,6 +377,7 @@ for k in range(1,20):
 		break
 
 	Eold = Enew
+
 
 #Magnus Lohnes results
 #N=2, L=6 , ECCSD = 3.152329
