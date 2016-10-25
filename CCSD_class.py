@@ -54,11 +54,10 @@ class CCSD:
 					for c in range(N,L):
 						self.W4[a-N,k,i,c-N] = self.computeW4(a,k,i,c)
 
-
 		for a in range(N,L):
 			for c in range(N,L):
 				self.F3[a-N,c-N] = self.computeF3(a,c)
-
+		
 	def updateIntermediatesCCD(self):
 
 		for k in range(0,N):
@@ -255,14 +254,16 @@ class CCSD:
 		#Compute 1 iteration
 		t1_new = self.computeT1Amplitudes(self.t1_old,self.t2_old)
 		t2_new = self.computeT2Amplitudes(self.t1_old,self.t2_old)
-		
+		print t1_new
+
 		Enew   = self.ECCSD(t1_new,t2_new)
 		
 		iters = 1
 		print Eref+Enew, abs(Enew-Eold),iters
 		self.t1_old = t1_new
 		self.t2_old = t2_new
-				
+		
+			
 		while(abs(Enew-Eold) > self.precision):
 
 			Eold   = Enew
@@ -274,7 +275,8 @@ class CCSD:
 			print Eref+Enew, abs(Enew-Eold), iters 
 			self.t1_old = t1_new
 			self.t2_old = t2_new
-
+			
+	
 	def solveWithCCD(self):
 
 		#Compute <phi0| H | phi0>
@@ -312,8 +314,7 @@ class CCSD:
 		Eref = self.computeEref()
 		#Initialize amplitudes
 		self.initialize()
-		#self.t1_old = np.zeros((L-N,N))
-		#print self.t1_old
+
 		self.updateIntermediates()
  
 		Eold = self.ECCSD(self.t1_old,self.t2_old)
@@ -322,7 +323,8 @@ class CCSD:
 		#Compute 1 iteration
 		t1_new = self.computeT1AmplitudesWithIntermediates(self.t1_old,self.t2_old)
 		t2_new = self.computeT2AmplitudesWithIntermediates(self.t1_old,self.t2_old)
-		#print t1_new	
+	
+		print t1_new	
 		
 		Enew   = self.ECCSD(t1_new,t2_new)
 		
@@ -330,8 +332,8 @@ class CCSD:
 		print Eref+Enew, abs(Enew-Eold),iters
 		self.t1_old = t1_new
 		self.t2_old = t2_new
-		
-		
+
+		"""
 		while(abs(Enew-Eold) > self.precision):
 			self.updateIntermediates()
 			Eold   = Enew
@@ -343,7 +345,8 @@ class CCSD:
 			print Eref+Enew, abs(Enew-Eold), iters 
 			self.t1_old = t1_new
 			self.t2_old = t2_new
-			
+		"""	
+	
 	def computeT1Amplitudes(self,t1,t2):
 		
 		N = self.holeStates
@@ -638,8 +641,12 @@ class CCSD:
 				
 				tsingles[a-N,i] = self.F[a,i]
 
+				tmp1 = 0
 				for k in range(0,N):
-					tsingles[a-N,i] -= t1[a-N,k]*self.F2[k,i]
+					 tmp1 += t1[a-N,k]*self.F2[k,i]
+				
+				tsingles[a-N,i] -= tmp1	 
+				
 
 				for c in range(N,L):
 					if(c != a):
@@ -649,11 +656,13 @@ class CCSD:
 					for c in range(N,L):
 						tsingles[a-N,i] += self.QRPS2(c,i,k,a)*t1[c-N,k]
 
+				tmp2 = 0		
 				for k in range(0,N):
 					for l in range(0,N):
 						for c in range(N,L):
-							tsingles[a-N,i] -= 0.5*t2[c-N,a-N,k,l]*self.W3[k,l,c-N,i] #POSSIBLE TYPO!!!!!!!!!!!!!!!!!!!!
-
+							 tmp2 += t2[c-N,a-N,k,l]*self.W3[k,l,c-N,i] #POSSIBLE TYPO!!!!!!!!!!!!!!!!!!!!
+				tsingles[a-N,i] -= 0.5*tmp2			 
+				
 				for k in range(0,N):
 					for c in range(N,L):
 						 tsingles[a-N,i] += t2[a-N,c-N,i,k]*self.F1[c-N,k]
@@ -777,10 +786,15 @@ class CCSD:
 		
 		val = self.QRPS2(i,j,k,l)
 		
+		tmp = 0
 		for c in range(N,L):
 			val += self.QRPS2(c,j,k,l)*self.t1_old[c-N,i] - self.QRPS2(c,i,k,l)*self.t1_old[c-N,j]
 			for d in range(N,L):
-				val += 0.5*self.QRPS2(c,d,k,l)*(self.t1_old[c-N,i]*self.t1_old[d-N,j] - self.t1_old[c-N,j]*self.t1_old[d-N,i] + self.t2_old[c-N,d-N,i,j])
+				tmp += self.QRPS2(c,d,k,l)*(self.t1_old[c-N,i]*self.t1_old[d-N,j] - self.t1_old[c-N,j]*self.t1_old[d-N,i] + self.t2_old[c-N,d-N,i,j])
+		
+		tmp *= 0.5
+		val += tmp
+		
 		return val
 
 	def computeW1CCD(self,k,l,i,j):
@@ -803,11 +817,13 @@ class CCSD:
 		L = self.BasisFunctions
 
 		val = self.QRPS2(i,j,a,k)
-
+		tmp = 0
 		for c in range(N,L):
 			val += self.QRPS2(i,c,a,k)*self.t1_old[c-N,j] - self.QRPS2(j,c,a,k)*self.t1_old[c-N,i]
 			for d in range(N,L):
-				val += 0.5*self.QRPS2(c,d,a,k)*(self.t2_old[c-N,d-N,i,j]+self.t1_old[c-N,i]*self.t1_old[d-N,j]-self.t1_old[c-N,j]*self.t1_old[d-N,i])
+				tmp += self.QRPS2(c,d,a,k)*(self.t2_old[c-N,d-N,i,j]+self.t1_old[c-N,i]*self.t1_old[d-N,j]-self.t1_old[c-N,j]*self.t1_old[d-N,i])
+		tmp *= 0.5
+		val += tmp
 		return val
 
 	def computeW2CCD(self,a,k,i,j):
@@ -857,12 +873,20 @@ class CCSD:
 		for d in range(N,L):
 			val += self.QRPS2(d,c,a,k)*self.t1_old[d-N,i]
 
+		tmp1 = 0	
 		for l in range(0,N):
-			val -= self.t1_old[a-N,l]*self.W3[k,l,c-N,i]
+			tmp1 += self.t1_old[a-N,l]*self.W3[k,l,c-N,i]
 
+		val -= tmp1	
+		
+		tmp2 = 0
+		
 		for l in range(0,N):
 			for d in range(N,L):
-				val += 0.5*self.QRPS2(c,d,k,l)*self.t2_old[a-N,d-N,i,l]
+				tmp2 += self.QRPS2(c,d,k,l)*self.t2_old[a-N,d-N,i,l]
+		
+		tmp2 *= 0.5
+		val  += tmp2
 
 		return val
 
@@ -1076,6 +1100,6 @@ for i in range(0,L):
 	oneBodyElements[i] = SingleParticleEnergy(map_index(i))
 
 ccsd_test = CCSD(N,L,w,oneBodyElements)
-ccsd_test.solve()
+#ccsd_test.solve()
 #ccsd_test.solveWithCCD()
-#ccsd_test.solveWithIntermediates()
+ccsd_test.solveWithIntermediates()
