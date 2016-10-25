@@ -247,7 +247,6 @@ class CCSD:
 		#Initialize amplitudes
 		self.initialize()
 		
-		 
 		Eold = self.ECCSD(self.t1_old,self.t2_old)
 		print Eref+Eold
 		
@@ -263,7 +262,7 @@ class CCSD:
 		self.t1_old = t1_new
 		self.t2_old = t2_new
 		
-			
+		"""	
 		while(abs(Enew-Eold) > self.precision):
 
 			Eold   = Enew
@@ -275,7 +274,7 @@ class CCSD:
 			print Eref+Enew, abs(Enew-Eold), iters 
 			self.t1_old = t1_new
 			self.t2_old = t2_new
-			
+		"""	
 	
 	def solveWithCCD(self):
 
@@ -314,7 +313,7 @@ class CCSD:
 		Eref = self.computeEref()
 		#Initialize amplitudes
 		self.initialize()
-
+		
 		self.updateIntermediates()
  
 		Eold = self.ECCSD(self.t1_old,self.t2_old)
@@ -555,7 +554,7 @@ class CCSD:
 				for k in range(0,N):
 					for l in range(0,N):
 						for c in range(N,L):
-							tsingles[a-N,i] -= 0.5*t2[c-N,a-N,k,l]*self.computeW3(k,l,c,i) #POSSIBLE TYPO!!!!!!!!!!!!!!!!!!!!
+							tsingles[a-N,i] -= 0.5*t2[c-N,a-N,k,l]*self.computeW3(i,c,k,l) #POSSIBLE TYPO!!!!!!!!!!!!!!!!!!!!
 
 				for k in range(0,N):
 					for c in range(N,L):
@@ -1081,8 +1080,8 @@ def SingleParticleEnergy(x):
 
 #################################################################################################################################################
 import sys
-inFile = open('HO_2d_10_nonzero.dat','r')
-#inFile = open('coulomb2.dat')
+#inFile = open('HO_2d_10_nonzero.dat','r')
+inFile = open('coulomb2.dat')
 w  = {}
 
 for line in inFile:
