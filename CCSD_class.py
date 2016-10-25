@@ -1,7 +1,7 @@
 import numpy as np
 
 class CCSD:
-	def __init__(self, N,L,w,oneBodyElements, precision=1e-8):
+	def __init__(self, N,L,w,oneBodyElements, precision=1e-4):
 		
 		self.holeStates   		= N
 		self.BasisFunctions     = L
@@ -255,7 +255,8 @@ class CCSD:
 		#Compute 1 iteration
 		t1_new = self.computeT1Amplitudes(self.t1_old,self.t2_old)
 		t2_new = self.computeT2Amplitudes(self.t1_old,self.t2_old)
-		print t1_new
+		
+		#print t1_new
 
 		Enew   = self.ECCSD(t1_new,t2_new)
 		
@@ -264,7 +265,7 @@ class CCSD:
 		self.t1_old = t1_new
 		self.t2_old = t2_new
 		
-		"""	
+			
 		while(abs(Enew-Eold) > self.precision):
 
 			Eold   = Enew
@@ -276,7 +277,7 @@ class CCSD:
 			print Eref+Enew, abs(Enew-Eold), iters 
 			self.t1_old = t1_new
 			self.t2_old = t2_new
-		"""	
+			
 	
 	def solveWithCCD(self):
 
@@ -325,7 +326,9 @@ class CCSD:
 		#Compute 1 iteration
 		t1_new = self.computeT1AmplitudesWithIntermediates(self.t1_old,self.t2_old)
 		t2_new = self.computeT2AmplitudesWithIntermediates(self.t1_old,self.t2_old)
-	
+		
+		print t1_new
+
 		Enew   = self.ECCSD(t1_new,t2_new)
 		
 		iters = 1
@@ -443,7 +446,7 @@ class CCSD:
 						#P(ab) -terms
 						for k in range(0,N):
 							for c in range(N,L):
-								tdoubles[a-N,b-N,i,j] += self.F[k,c]*t1[a-N,k]*t2[b-N,c-N,i,j] - self.F[k,c]*t1[b-N,k]*t2[a-N,c-N,i,j]
+								tdoubles[a-N,b-N,i,j] += self.F[k,c]*(t1[a-N,k]*t2[b-N,c-N,i,j] - t1[b-N,k]*t2[a-N,c-N,i,j])
 
 						for k in range(0,N):
 							tdoubles[a-N,b-N,i,j] -= self.QRPS2(i,j,k,b)*t1[a-N,k] - self.QRPS2(i,j,k,a)*t1[b-N,k]
@@ -455,15 +458,15 @@ class CCSD:
 						for k in range(0,N):
 							for c in range(N,L):
 								for d in range(N,L):
-									  tdoubles[a-N,b-N,i,j] += self.QRPS2(c,d,k,a)*t1[c-N,k]*t2[d-N,b-N,i,j] - 0.5*self.QRPS2(c,d,k,b)*t1[a-N,k]*t2[c-N,d-N,i,j]
-									  tdoubles[a-N,b-N,i,j] -= self.QRPS2(c,d,k,b)*t1[c-N,k]*t2[d-N,a-N,i,j] - 0.5*self.QRPS2(c,d,k,a)*t1[b-N,k]*t2[c-N,d-N,i,j]
+									  tdoubles[a-N,b-N,i,j] += self.QRPS2(c,d,k,a)*(t1[c-N,k]*t2[d-N,b-N,i,j]  + 0.5*t1[b-N,k]*t2[c-N,d-N,i,j])
+									  tdoubles[a-N,b-N,i,j] -= self.QRPS2(c,d,k,b)*(t1[c-N,k]*t2[d-N,a-N,i,j]  + 0.5*t1[a-N,k]*t2[c-N,d-N,i,j])
 
 						for k in range(0,N):
 							for l in range(0,N):
 								for c in range(N,L):
 									for d in range(N,L):
-										tdoubles[a-N,b-N,i,j] += self.QRPS2(c-N,d-N,k,l)*(0.25*t1[a-N,k]*t1[b-N,l]*t2[c-N,d-N,i,j] - t1[c-N,k]*t1[a-N,l]*t2[d-N,b-N,i,j] - 0.5*t2[a-N,c-N,i,j]*t2[b-N,d-N,k,l])
-										tdoubles[a-N,b-N,i,j] -= self.QRPS2(c-N,d-N,k,l)*(0.25*t1[b-N,k]*t1[a-N,l]*t2[c-N,d-N,i,j] - t1[c-N,k]*t1[b-N,l]*t2[d-N,a-N,i,j] - 0.5*t2[b-N,c-N,i,j]*t2[a-N,d-N,k,l])
+										tdoubles[a-N,b-N,i,j] += self.QRPS2(c,d,k,l)*(0.25*t1[a-N,k]*t1[b-N,l]*t2[c-N,d-N,i,j] - t1[c-N,k]*t1[a-N,l]*t2[d-N,b-N,i,j] - 0.5*t2[a-N,c-N,i,j]*t2[b-N,d-N,k,l])
+										tdoubles[a-N,b-N,i,j] -= self.QRPS2(c,d,k,l)*(0.25*t1[b-N,k]*t1[a-N,l]*t2[c-N,d-N,i,j] - t1[c-N,k]*t1[b-N,l]*t2[d-N,a-N,i,j] - 0.5*t2[b-N,c-N,i,j]*t2[a-N,d-N,k,l])
 
 						#P(ij)-terms
 						for c in range(N,L):
@@ -880,9 +883,7 @@ class CCSD:
 		N = self.holeStates
 		L = self.BasisFunctions
 
-		val = 0
-		if(c != a):
-			val = self.F[a,c]
+		val = (1.0-self.delta(a,c))*self.F[a,c]
 
 		for k in range(0,N):
 			val -= self.t1_old[a-N,k]*self.F1[c-N,k]
