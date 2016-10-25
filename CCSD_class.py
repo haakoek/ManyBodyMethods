@@ -204,7 +204,7 @@ class CCSD:
 		self.t2_old = t2_new
 		
 		
-		"""
+		
 		while(abs(Enew-Eold) > self.precision):
 
 			Eold   = Enew
@@ -216,7 +216,7 @@ class CCSD:
 			print Eref+Enew, abs(Enew-Eold), iters 
 			self.t1_old = t1_new
 			self.t2_old = t2_new
-		"""
+		
 	def solveWithIntermediates(self):
 
 		#Compute <phi0| H | phi0>
@@ -434,6 +434,61 @@ class CCSD:
 						tdoubles[a-N,b-N,i,j] /= Dabij
 		return tdoubles
 
+	def computeT2AmplitudesWithIntermediatesManual(self,t1,t2):
+
+		N = self.holeStates
+		L = self.BasisFunctions
+
+		tdoubles = np.zeros( (L-N,L-N,N,N) )
+
+		for i in range(0,N):
+			for j in range(0,N):
+				for a in range(N,L):
+					for b in range(N,L):
+
+						tdoubles[a-N,b-N,i,j] = self.QRPS2(i,j,a,b)
+
+						for k in range(0,N):
+							for l in range(0,N):
+								tdoubles[a-N,b-N,i,j] += 0.5*(t1[a-N,k]*t1[b-N,l] - t1[b-N,k]*t1[a-N,l] + t2[a-N,b-N,k,l])*self.computeW1(k,l,i,j)
+
+						for k in range(0,N):
+							tdoubles[a-N,b-N,i,j] -= t1[b-N,k]*self.computeW2(a,k,i,j)
+							tdoubles[a-N,b-N,i,j] += t1[a-N,k]*self.computeW2(b,k,i,j)
+
+						for k in range(0,N):
+							tdoubles[a-N,b-N,i,j] += t2[a-N,b-N,j,k]*self.computeF2(k,i)
+							tdoubles[a-N,b-N,i,j] -= t2[a-N,b-N,i,k]*self.computeF2(k,j)
+
+						for c in range(N,L):
+							for d in range(N,L):
+								tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(c,d,a,b)*t2[c-N,d-N,i,j]
+
+						for c in range(N,L):
+							tdoubles[a-N,b-N,i,j] += t2[b-N,c-N,i,j]*self.computeF3(a,c)
+							tdoubles[a-N,b-N,i,j] -= t2[a-N,c-N,i,j]*self.computeF3(b,c)
+
+						for c in range(N,L):
+							tdoubles[a-N,b-N,i,j] += self.QRPS2(c,j,a,b)*t1[c-N,i]
+							tdoubles[a-N,b-N,i,j] -= self.QRPS2(c,i,a,b)*t1[c-N,j]
+
+						for c in range(N,L):
+							for d in range(N,L):
+								tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(c,j,a,b)*t1[c-N,i]
+								tdoubles[a-N,b-N,i,j] -= 0.5*self.QRPS2(c,j,a,b)*t1[c-N,i]
+
+						for k in range(0,N):
+							for c in range(N,L):
+								tdoubles[a-N,b-N,i,j] += t2[b-N,c-N,j,k]*self.computeW4(a,k,i,c)
+								tdoubles[a-N,b-N,i,j] -= t2[b-N,c-N,i,k]*self.computeW4(a,k,j,c)
+								tdoubles[a-N,b-N,i,j] -= t2[a-N,c-N,j,k]*self.computeW4(b,k,i,c)
+								tdoubles[a-N,b-N,i,j] += t2[a-N,c-N,i,k]*self.computeW4(b,k,j,c)
+
+						Dabij = self.F[i,i] + self.F[j,j] - self.F[a,a] - self.F[b,b]
+						tdoubles[a-N,b-N,i,j] /= Dabij
+		return tdoubles
+
+
 	def computeT1AmplitudesWithInterMediates(self,t1,t2):
 
 		N = self.holeStates
@@ -556,16 +611,12 @@ class CCSD:
 		N = self.holeStates
 		L = self.BasisFunctions
 		
-		val = 0
 		val = self.QRPS2(i,j,k,l)
 		
 		for c in range(N,L):
 			val += self.QRPS2(c,j,k,l)*self.t1_old[c-N,i] - self.QRPS2(c,i,k,l)*self.t1_old[c-N,j]
-			tmp = 0.0
 			for d in range(N,L):
-				tmp += self.QRPS2(c,d,k,l)*(self.t1_old[c-N,i]*self.t1_old[d-N,j] - self.t1_old[c-N,j]*self.t1_old[d-N,i] + self.t2_old[c-N,d-N,i,j])
-			tmp *= 0.5
-			val += tmp
+				val += 0.5*self.QRPS2(c,d,k,l)*(self.t1_old[c-N,i]*self.t1_old[d-N,j] - self.t1_old[c-N,j]*self.t1_old[d-N,i] + self.t2_old[c-N,d-N,i,j])
 		return val
 
 	def computeW2(self,a,k,i,j):
@@ -575,16 +626,12 @@ class CCSD:
 		N = self.holeStates
 		L = self.BasisFunctions
 
-		val = 0
 		val = self.QRPS2(i,j,a,k)
 
 		for c in range(N,L):
 			val += self.QRPS2(i,c,a,k)*self.t1_old[c-N,j] - self.QRPS2(j,c,a,k)*self.t1_old[c-N,i]
-			tmp = 0.0
 			for d in range(N,L):
-				tmp += self.QRPS2(c,d,a,k)*(self.t2_old[c-N,d-N,i,j]+self.t1_old[c-N,i]*self.t1_old[d-N,j]-self.t1_old[c-N,j]*self.t1_old[d-N,i])
-			tmp *= 0.5
-			val += tmp
+				val += 0.5*self.QRPS2(c,d,a,k)*(self.t2_old[c-N,d-N,i,j]+self.t1_old[c-N,i]*self.t1_old[d-N,j]-self.t1_old[c-N,j]*self.t1_old[d-N,i])
 		return val
 	
 	def computeW3(self,k,l,c,i):
@@ -606,23 +653,17 @@ class CCSD:
 		N = self.holeStates
 		L = self.BasisFunctions
 
-		val = 0
 		val = self.QRPS2(i,c,a,k)
 
 		for d in range(N,L):
 			val += self.QRPS2(d,c,a,k)*self.t1_old[d-N,i]
 
 		for l in range(0,N):
-			val -= self.t1_old[a-N,l]*self.W3[k,l,c-N,i]
-
-		tmp = 0
+			val -= self.t1_old[a-N,l]*self.computeW3(k,l,c,i)
 
 		for l in range(0,N):
 			for d in range(N,L):
-				tmp += self.QRPS2(c,d,k,l)*self.t2_old[a-N,d-N,i,l]
-
-		tmp *= 0.5
-		val += tmp
+				val += 0.5*self.QRPS2(c,d,k,l)*self.t2_old[a-N,d-N,i,l]
 
 		return val
 
@@ -652,16 +693,11 @@ class CCSD:
 			val = self.F[k,i]
 
 		for c in range(N,L):
-			val += self.t1_old[c-N,i]*self.F1[c-N,k]
-
+			val += self.t1_old[c-N,i]*self.computeF1(c,k)
 			for l in range(0,N):
 				val += self.QRPS2(i,c,k,l)*self.t1_old[c-N,l]
-				tmp = 0
 				for d in range(N,L):
-					tmp += self.QRPS2(c,d,k,l)*self.t2_old[c-N,d-N,i,l]
-				tmp *= 0.5
-				val += tmp
-
+					val += 0.5*self.QRPS2(c,d,k,l)*self.t2_old[c-N,d-N,i,l]
 		return val
 
 	def computeF3(self,a,c):
@@ -675,18 +711,12 @@ class CCSD:
 		if(c != a):
 			val = self.F[a,c]
 
-		tmp1 = 0
 		for k in range(0,N):
-			tmp1 += self.t1_old[a-N,k]*self.F1[c-N,k]
+			val -= self.t1_old[a-N,k]*self.computeF1(c,k)
 			for d in range(N,L):
-				tmp1 += self.QRPS2(c,d,k,a)*self.t1_old[d-N,k]
-				tmp2 = 0
+				val -= self.QRPS2(c,d,k,a)*self.t1_old[d-N,k]
 				for l in range(0,N):
-					tmp2 += self.QRPS2(c,d,k,l)*self.t2_old[a-N,d-N,k,l]
-				tmp2 *= 0.5
-				tmp1 -= tmp2
-
-		val -= tmp1
+					val += 0.5*self.QRPS2(c,d,k,l)*self.t2_old[a-N,d-N,k,l]
 		return val
 
 
@@ -754,5 +784,5 @@ for i in range(0,L):
 	oneBodyElements[i] = SingleParticleEnergy(map_index(i))
 
 ccsd_test = CCSD(N,L,w,oneBodyElements)
-#ccsd_test.solve()
-ccsd_test.solveWithIntermediates()
+ccsd_test.solve()
+#ccsd_test.solveWithIntermediates()
