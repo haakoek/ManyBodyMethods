@@ -248,6 +248,8 @@ class CCSD:
 		print Eref
 		#Initialize amplitudes
 		self.initialize()
+
+		print self.t1_old
 		
 		Eold = self.ECCSD(self.t1_old,self.t2_old)
 		print Eref+Eold
@@ -256,7 +258,8 @@ class CCSD:
 		t1_new = self.computeT1Amplitudes(self.t1_old,self.t2_old)
 		t2_new = self.computeT2Amplitudes(self.t1_old,self.t2_old)
 		
-		#print t1_new
+		print t1_new
+
 
 		Enew   = self.ECCSD(t1_new,t2_new)
 		
@@ -265,7 +268,7 @@ class CCSD:
 		self.t1_old = t1_new
 		self.t2_old = t2_new
 		
-			
+		
 		while(abs(Enew-Eold) > self.precision):
 
 			Eold   = Enew
@@ -360,6 +363,49 @@ class CCSD:
 				
 				tsingles[a-N,i] = self.F[i,a]
 
+				#Crawford and Schaefer
+
+				for c in range(N,L):
+					tsingles[a-N,i] += (1-self.delta(c,a))*self.F[a,c]*t1[c-N,i]
+				for k in range(0,N):
+					tsingles[a-N,i] -= (1-self.delta(i,k))*self.F[i,k]*t1[a-N,k]
+
+				for k in range(0,N):
+					for c in range(N,L):
+						tsingles[a-N,i] += self.QRPS2(k,a,c,i)*t1[c-N,k]
+
+						tsingles[a-N,i] += self.F[k,c]*t2[a-N,c-N,i,k]
+
+						tsingles[a-N,i] -= self.F[k,c]*t1[c-N,i]*t1[a-N,k]
+
+				for k in range(0,N):
+					for c in range(N,L):
+						for d in range(N,L):
+							tsingles[a-N,i] += 0.5*self.QRPS2(k,a,c,d)*t2[c-N,d-N,k,i]
+
+							tsingles[a-N,i] -= self.QRPS2(k,a,c,d)*t1[c-N,k]*t1[d-N,i]
+
+				for k in range(0,N):
+					for l in range(0,N):
+						for c in range(N,L):
+							tsingles[a-N,i] -= 0.5*self.QRPS2(k,l,c,i)*t2[c-N,a-N,k,l]
+
+							tsingles[a-N,i] -= self.QRPS2(k,l,c,i)*t1[c-N,k]*t1[a-N,l]
+
+				for k in range(0,N):
+					for l in range(0,N):
+						for c in range(N,L):
+							for d in range(N,L):
+								tsingles[a-N,i] -= self.QRPS2(k,l,c,d)*t1[c-N,k]*t1[d-N,i]*t1[a-N,l]
+
+								tsingles[a-N,i] += self.QRPS2(k,l,c,d)*t1[c-N,k]*t2[d-N,a-N,l,i]
+
+								tsingles[a-N,i] -= 0.5*self.QRPS2(k,l,c,d)*t2[c-N,d-N,k,i]*t1[a-N,l]
+
+								tsingles[a-N,i] -= 0.5*self.QRPS2(k,l,c,d)*t2[c-N,a-N,k,l]*t1[d-N,i]
+
+
+				"""
 				for c in range(N,L):
 					if (c != a):
 						tsingles[a-N,i] += self.F[a,c]*t1[c-N,i]
@@ -387,7 +433,7 @@ class CCSD:
 				for k in range(0,N):
 					for c in range(N,L):
 						tsingles[a-N,i] -= self.F[k,c]*t1[c-N,i]*t1[a-N,k]
-
+				
 				for k in range(0,N):
 					for l in range(0,N):
 						for c in range(N,L):
@@ -396,7 +442,8 @@ class CCSD:
 								tsingles[a-N,i] += self.QRPS2(c,d,k,l)*t1[c-N,k]*t2[d-N,a-N,l,i]
 								tsingles[a-N,i] -= 0.5*self.QRPS2(c,d,k,l)*t2[c-N,d-N,k,i]*t1[a-N,l]
 								tsingles[a-N,i] -= 0.5*self.QRPS2(c,d,k,l)*t2[c-N,a-N,k,l]*t1[d-N,i]
-
+				"""				
+				
 				Dia  = self.F[i,i] - self.F[a,a]
 				tsingles[a-N,i] /= Dia
 
