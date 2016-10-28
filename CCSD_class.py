@@ -839,15 +839,13 @@ class CCSD:
 
 						for c in range(N,L):
 							for d in range(N,L):
-								tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(c,j,a,b)*t1[c-N,i]
-								tdoubles[a-N,b-N,i,j] -= 0.5*self.QRPS2(c,j,a,b)*t1[c-N,i]
+								tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(c,d,a,b)*t1[c-N,i]*t1[d-N,j]
+								tdoubles[a-N,b-N,i,j] -= 0.5*self.QRPS2(c,d,a,b)*t1[c-N,j]*t1[d-N,i]
 
 						for k in range(0,N):
 							for c in range(N,L):
-								tdoubles[a-N,b-N,i,j] += t2[b-N,c-N,j,k]*self.W4[a-N,k,i,c-N]
-								tdoubles[a-N,b-N,i,j] -= t2[b-N,c-N,i,k]*self.W4[a-N,k,j,c-N]
-								tdoubles[a-N,b-N,i,j] -= t2[a-N,c-N,j,k]*self.W4[b-N,k,i,c-N]
-								tdoubles[a-N,b-N,i,j] += t2[a-N,c-N,i,k]*self.W4[b-N,k,j,c-N]
+								tdoubles[a-N,b-N,i,j] += t2[b-N,c-N,j,k]*self.W4[a-N,k,i,c-N] - t2[b-N,c-N,i,k]*self.W4[a-N,k,j,c-N]
+								tdoubles[a-N,b-N,i,j] -= t2[a-N,c-N,j,k]*self.W4[b-N,k,i,c-N] - t2[a-N,c-N,i,k]*self.W4[b-N,k,j,c-N]
 
 						Dabij = self.F[i,i] + self.F[j,j] - self.F[a,a] - self.F[b,b]
 						tdoubles[a-N,b-N,i,j] /= Dabij
@@ -1285,8 +1283,8 @@ def QRPS(twoBodyIntegrals,q,r,p,s):
 
 #################################################################################################################################################
 import sys
-inFile = open('HO_2d_10_nonzero.dat','r')
-#inFile = open('coulomb.dat')
+#inFile = open('HO_2d_10_nonzero.dat','r')
+inFile = open('coulomb2.dat')
 w  = {}
 
 for line in inFile:
@@ -1306,7 +1304,6 @@ for i in range(0,L):
 			for l in range(0,L):
 				w2[i,j,k,l] = QRPS(w,i,j,k,l)
 
-print w2
 prec = 1e-8
 
 oneBodyElements = np.zeros(L)
