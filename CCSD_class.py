@@ -104,7 +104,7 @@ class CCSD:
 		else:
 			return 0
 
-	def map_index2(self,x):
+	def map_index(self,x):
 	
 		if(x == 0 or x == 1):
 			return 0
@@ -136,7 +136,7 @@ class CCSD:
 		elif (x == 18 or x == 19):
 			return 9
 
-	def map_index(self,x):
+	def map_index2(self,x):
 	
 		if(x == 0 or x == 1):
 			return 1
@@ -242,11 +242,16 @@ class CCSD:
 		for i in range(0,N):
 			for a in range(N,L):
 				ECCSD += self.F[i,a]*t1[a-N,i]
-				for j in range(0,N):
-					for b in range(N,L):
-						ECCSD += self.QRPS2(i,j,a,b)*(0.25*t2[a-N,b-N,i,j] + 0.5*t1[a-N,i]*t1[b-N,j])
 
-		return ECCSD
+
+		tmp = 0		
+		for i in range(0,N):
+			for j in range(0,N):
+				for a in range(N,L):
+					for b in range(N,L):
+						tmp += self.QRPS2(i,j,a,b)*(t2[a-N,b-N,i,j] + t1[a-N,i]*t1[b-N,j]-t1[b-N,i]*t1[a-N,j])
+
+		return ECCSD+0.25*tmp
 
 	def ECCD(self,t2):
 
@@ -391,11 +396,12 @@ class CCSD:
 
 				#Crawford and Schaefer
 
-				for c in range(N,L):
-					tsingles[a-N,i] += (1.0-self.delta(c,a))*self.F[a,c]*t1[c-N,i]
-				for k in range(0,N):
-					tsingles[a-N,i] -= (1.0-self.delta(i,k))*self.F[k,i]*t1[a-N,k]
+				for b in range(N,L):
+					tsingles[a-N,i] += (1.0-self.delta(b,a))*self.F[a,b]*t1[b-N,i]
+				for j in range(0,N):
+					tsingles[a-N,i] -= (1.0-self.delta(i,j))*self.F[j,i]*t1[a-N,j]
 
+				"""
 				for j in range(0,N):
 					for b in range(N,L):
 						tsingles[a-N,i] += self.QRPS2(i,a,b,j)*t1[b-N,i]
@@ -429,8 +435,8 @@ class CCSD:
 								tsingles[a-N,i] += 0.5*self.QRPS2(i,j,a,b)*t1[c-N,i]*t2[a-N,b-N,j,k]
 
 								tsingles[a-N,i] += self.QRPS2(i,j,a,b)*t1[a-N,k]*t1[b-N,i]*t1[c-N,j]
-
-				"""
+				"""				
+				
 				for k in range(0,N):
 					for c in range(N,L):
 						tsingles[a-N,i] += self.QRPS2(k,a,c,i)*t1[c-N,k]
@@ -472,7 +478,7 @@ class CCSD:
 
 								tsingles[a-N,i] -= 0.5*klcd*t2[c-N,a-N,k,l]*t1[d-N,i]
 
-				"""
+				
 				"""
 				for c in range(N,L):
 					if (c != a):
@@ -1180,7 +1186,7 @@ def SingleParticleEnergy(x):
 #################################################################################################################################################
 import sys
 #inFile = open('HO_2d_10_nonzero.dat','r')
-inFile = open('coulomb.dat')
+inFile = open('coulomb2.dat')
 w  = {}
 
 for line in inFile:
