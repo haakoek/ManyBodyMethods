@@ -104,7 +104,7 @@ class CCSD:
 		else:
 			return 0
 
-	def map_index(self,x):
+	def map_index2(self,x):
 	
 		if(x == 0 or x == 1):
 			return 0
@@ -136,7 +136,7 @@ class CCSD:
 		elif (x == 18 or x == 19):
 			return 9
 
-	def map_index2(self,x):
+	def map_index(self,x):
 	
 		if(x == 0 or x == 1):
 			return 1
@@ -174,21 +174,29 @@ class CCSD:
 		elif( (x == 1) | (x == 3) | (x == 5) | (x == 7) | (x == 9) | (x == 11) | (x == 13) | (x == 15) | (x == 17) | (x == 19) ):
 			return 1
 
-	def QRPS2(self,q,r,p,s):
+	def QRPS3(self,q,r,p,s):
 	
 		key1 = str(self.map_index(q)) +str(self.map_index(r)) + str(self.map_index(p)) + str(self.map_index(s))
 		key2 = str(self.map_index(q)) +str(self.map_index(r)) + str(self.map_index(s)) + str(self.map_index(p))
 
+		d_qp = self.delta(self.spin(q),self.spin(p))
+		d_rs = self.delta(self.spin(r),self.spin(s))
+		d_qs = self.delta(self.spin(q),self.spin(s))
+		d_rp = self.delta(self.spin(r),self.spin(p))
+
 		if((self.twoBodyIntegrals.has_key(key1) == True) and (self.twoBodyIntegrals.has_key(key2) == True)):
-			qrps = self.delta(self.spin(q),self.spin(p))*self.delta(self.spin(r),self.spin(s))*self.twoBodyIntegrals[key1]-self.delta(self.spin(q),self.spin(s))*self.delta(self.spin(r),self.spin(p))*self.twoBodyIntegrals[key2]
+			qrps = d_qp*d_rs*self.twoBodyIntegrals[key1]-d_qs*d_rp*self.twoBodyIntegrals[key2]
 		elif ((self.twoBodyIntegrals.has_key(key1) == True) and (self.twoBodyIntegrals.has_key(key2) == False)):
-			qrps = self.delta(self.spin(q),self.spin(p))*self.delta(self.spin(r),self.spin(s))*self.twoBodyIntegrals[key1]
+			qrps = d_qp*d_rs*self.twoBodyIntegrals[key1]
 		elif ((self.twoBodyIntegrals.has_key(key1) == False) and (self.twoBodyIntegrals.has_key(key2) == True)):
-			qrps = -self.delta(self.spin(q),self.spin(s))*self.delta(self.spin(r),self.spin(p))*self.twoBodyIntegrals[key2]
+			qrps = -d_qs*d_rp*self.twoBodyIntegrals[key2]
 		else:
-			qrps = 0.0
+			qrps = 0
 			
 		return qrps
+
+	def QRPS2(self,q,r,p,s):
+		return self.twoBodyIntegrals[q,r,p,s]
 	
 	def computeEref(self):
 		Eref = 0.0
@@ -1138,7 +1146,42 @@ class CCSD:
 					val += 0.5*self.QRPS2(c,d,k,l)*self.t2_old[a-N,d-N,k,l]
 		return val
 
+def delta(i,j):
+	if(i == j):
+		return 1
+	else:
+		return 0
+def map_index_SPenergy(x):
+	
+	if(x == 0 or x == 1):
+		return 0
 
+	elif(x == 2 or x == 3):
+		return 1
+
+	elif (x == 4 or x == 5):
+		return 2
+
+	elif (x == 6 or x == 7):
+		return 3
+
+	elif (x == 8 or x == 9):
+		return 4
+
+	elif (x == 10 or x == 11):
+		return 5
+
+	elif (x == 12 or x == 13):
+		return 6
+
+	elif (x == 14 or x == 15):
+		return 7
+
+	elif (x == 16 or x == 17):
+		return 8
+
+	elif (x == 18 or x == 19):
+		return 9
 def map_index(x):
 	
 	if(x == 0 or x == 1):
@@ -1170,6 +1213,37 @@ def map_index(x):
 
 	elif (x == 18 or x == 19):
 		return 9
+def map_index2(x):
+	
+	if(x == 0 or x == 1):
+		return 1
+
+	elif(x == 2 or x == 3):
+		return 2
+
+	elif (x == 4 or x == 5):
+		return 3
+
+	elif (x == 6 or x == 7):
+		return 4
+
+	elif (x == 8 or x == 9):
+		return 5
+
+	elif (x == 10 or x == 11):
+		return 6
+
+	elif (x == 12 or x == 13):
+		return 7
+
+	elif (x == 14 or x == 15):
+		return 8
+
+	elif (x == 16 or x == 17):
+		return 9
+
+	elif (x == 18 or x == 19):
+		return 10
 def SingleParticleEnergy(x):
 	if (x == 0):
 		return 1.0
@@ -1182,11 +1256,37 @@ def SingleParticleEnergy(x):
 
 	elif (x == 6 or x == 7 or x == 8 or x == 9):
 		return 4.0
+def spin(x):
+	if(   (x == 0) | (x == 2) | (x == 4) | (x == 6) | (x == 8) | (x == 10) | (x == 12) | (x == 14) | (x == 16) | (x == 18) ):
+		return -1
+	elif( (x == 1) | (x == 3) | (x == 5) | (x == 7) | (x == 9) | (x == 11) | (x == 13) | (x == 15) | (x == 17) | (x == 19) ):
+		return 1
+
+def QRPS(twoBodyIntegrals,q,r,p,s):
+	
+		key1 = str(map_index(q)) +str(map_index(r)) + str(map_index(p)) + str(map_index(s))
+		key2 = str(map_index(q)) +str(map_index(r)) + str(map_index(s)) + str(map_index(p))
+
+		d_qp = delta(spin(q),spin(p))
+		d_rs = delta(spin(r),spin(s))
+		d_qs = delta(spin(q),spin(s))
+		d_rp = delta(spin(r),spin(p))
+
+		if((twoBodyIntegrals.has_key(key1) == True) and (twoBodyIntegrals.has_key(key2) == True)):
+			qrps = d_qp*d_rs*twoBodyIntegrals[key1]-d_qs*d_rp*twoBodyIntegrals[key2]
+		elif ((twoBodyIntegrals.has_key(key1) == True) and (twoBodyIntegrals.has_key(key2) == False)):
+			qrps = d_qp*d_rs*twoBodyIntegrals[key1]
+		elif ((twoBodyIntegrals.has_key(key1) == False) and (twoBodyIntegrals.has_key(key2) == True)):
+			qrps = -d_qs*d_rp*twoBodyIntegrals[key2]
+		else:
+			qrps = 0
+			
+		return qrps
 
 #################################################################################################################################################
 import sys
-#inFile = open('HO_2d_10_nonzero.dat','r')
-inFile = open('coulomb2.dat')
+inFile = open('HO_2d_10_nonzero.dat','r')
+#inFile = open('coulomb.dat')
 w  = {}
 
 for line in inFile:
@@ -1195,18 +1295,29 @@ for line in inFile:
 	val = float(tmp[4])
 	w[key]  = val
 
+
+
 N = int(sys.argv[1]); L = int(sys.argv[2])
+w2 = np.zeros((L,L,L,L))
+
+for i in range(0,L):
+	for j in range(0,L):
+		for k in range(0,L):
+			for l in range(0,L):
+				w2[i,j,k,l] = QRPS(w,i,j,k,l)
+
+print w2
 prec = 1e-8
 
 oneBodyElements = np.zeros(L)
 
 for i in range(0,L):
-	oneBodyElements[i] = SingleParticleEnergy(map_index(i))
+	oneBodyElements[i] = SingleParticleEnergy(map_index_SPenergy(i))
 
-ccsd_test = CCSD(N,L,w,oneBodyElements)
-ccsd_test.solve()
+ccsd_test = CCSD(N,L,w2,oneBodyElements)
+#ccsd_test.solve()
 #ccsd_test.solveWithCCD()
-#ccsd_test.solveWithIntermediates()
+ccsd_test.solveWithIntermediates()
 
 #####
 #Brute force with t1 set to zero at all iterations:
