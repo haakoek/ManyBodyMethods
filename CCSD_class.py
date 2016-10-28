@@ -104,7 +104,7 @@ class CCSD:
 		else:
 			return 0
 
-	def map_index(self,x):
+	def map_index2(self,x):
 	
 		if(x == 0 or x == 1):
 			return 0
@@ -136,7 +136,7 @@ class CCSD:
 		elif (x == 18 or x == 19):
 			return 9
 
-	def map_index2(self,x):
+	def map_index(self,x):
 	
 		if(x == 0 or x == 1):
 			return 1
@@ -218,13 +218,13 @@ class CCSD:
 		N = self.holeStates
 		L = self.BasisFunctions
 		
-		"""
+		
 		for i in range(0,N):
 			for a in range(N,L):
 				Dia  = self.F[i,i] - self.F[a,a]
 				tia  = self.F[i,a]/Dia
 				self.t1_old[a-N,i] = tia
-		"""
+		
 		for i in range(0,N):
 			for j in range(0,N):
 				for a in range(N,L):
@@ -247,13 +247,8 @@ class CCSD:
 			for j in range(0,N):
 				for a in range(N,L):
 					for b in range(N,L):
-						tmp1 = self.QRPS2(i,j,a,b)
-						tmp1 *= 0.25*t2[a-N,b-N,i,j]
-
-						tmp2 = self.QRPS2(i,j,a,b)
-						tmp2 *= 0.5*t1[a-N,i]*t1[b-N,j]
-
-						ECCSD += tmp1 + tmp2
+						tmp3 = self.QRPS2(i,j,a,b)*(0.25*t2[a-N,b-N,i,j] + 0.5*t1[a-N,i]*t1[b-N,j])
+						ECCSD += tmp3
 
 		return ECCSD
 
@@ -489,7 +484,7 @@ class CCSD:
 				Dia  = self.F[i,i] - self.F[a,a]
 				tsingles[a-N,i] /= Dia
 
-		return np.zeros((L-N,N))#tsingles
+		return tsingles
 
 	def computeT2Amplitudes(self,t1,t2):
 	
@@ -725,7 +720,7 @@ class CCSD:
 		L = self.BasisFunctions
 
 		tsingles = np.zeros((L-N,N))
-		"""
+		
 		for i in range(0,N):
 			for a in range(N,L):
 				
@@ -769,8 +764,8 @@ class CCSD:
 
 				Dia  = self.F[i,i] - self.F[a,a]
 				tsingles[a-N,i] = tsingles[a-N,i]/Dia
-		"""
-		return np.zeros((L-N,N))#tsingles
+		
+		return tsingles
 
 	def computeT2AmplitudesWithIntermediates(self,t1,t2):
 
@@ -1166,8 +1161,8 @@ def SingleParticleEnergy(x):
 
 #################################################################################################################################################
 import sys
-inFile = open('HO_2d_10_nonzero.dat','r')
-#inFile = open('coulomb.dat')
+#inFile = open('HO_2d_10_nonzero.dat','r')
+inFile = open('coulomb.dat')
 w  = {}
 
 for line in inFile:
@@ -1185,9 +1180,9 @@ for i in range(0,L):
 	oneBodyElements[i] = SingleParticleEnergy(map_index(i))
 
 ccsd_test = CCSD(N,L,w,oneBodyElements)
-#ccsd_test.solve()
+ccsd_test.solve()
 #ccsd_test.solveWithCCD()
-ccsd_test.solveWithIntermediates()
+#ccsd_test.solveWithIntermediates()
 
 #####
 #Brute force with t1 set to zero at all iterations:
