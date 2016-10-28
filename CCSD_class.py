@@ -242,13 +242,9 @@ class CCSD:
 		for i in range(0,N):
 			for a in range(N,L):
 				ECCSD += self.F[i,a]*t1[a-N,i]
-
-		for i in range(0,N):
-			for j in range(0,N):
-				for a in range(N,L):
+				for j in range(0,N):
 					for b in range(N,L):
-						tmp3 = self.QRPS2(i,j,a,b)*(0.25*t2[a-N,b-N,i,j] + 0.5*t1[a-N,i]*t1[b-N,j])
-						ECCSD += tmp3
+						ECCSD += self.QRPS2(i,j,a,b)*(0.25*t2[a-N,b-N,i,j] + 0.5*t1[a-N,i]*t1[b-N,j])
 
 		return ECCSD
 
@@ -400,6 +396,41 @@ class CCSD:
 				for k in range(0,N):
 					tsingles[a-N,i] -= (1.0-self.delta(i,k))*self.F[k,i]*t1[a-N,k]
 
+				for j in range(0,N):
+					for b in range(N,L):
+						tsingles[a-N,i] += self.QRPS2(i,a,b,j)*t1[b-N,i]
+
+						tsingles[a-N,i] += self.F[i,a]*t2[b-N,a-N,j,i]
+
+						tsingles[a-N,i] -= self.F[i,a]*t1[a-N,j]*t1[b-N,i]
+
+				for j in range(0,N):
+					for k in range(0,N):
+						for b in range(N,L):
+							tsingles[a-N,i] -= 0.5*self.QRPS2(i,j,k,a)*t2[b-N,a-N,i,j]
+
+							tsingles[a-N,i] += self.QRPS2(i,j,a,k)*t1[b-N,i]*t1[a-N,j]
+
+				for j in range(0,N):
+					for b in range(N,L):
+						for c in range(N,L):
+							tsingles[a-N,i] -= self.QRPS2(i,a,b,c)*t1[b-N,j]*t1[c-N,i]
+
+							tsingles[a-N,i] += 0.5*self.QRPS2(a,i,b,c)*t2[b-N,c-N,j,i]
+
+				for j in range(0,N):
+					for k in range(0,N):
+						for b in range(N,L):
+							for c in range(N,L):
+								tsingles[a-N,i] += self.QRPS2(i,j,a,b)*t1[a-N,i]*t2[b-N,c-N,j,k]
+
+								tsingles[a-N,i] += 0.5*self.QRPS2(i,j,a,b)*t1[a-N,k]*t2[b-N,c-N,i,j]
+
+								tsingles[a-N,i] += 0.5*self.QRPS2(i,j,a,b)*t1[c-N,i]*t2[a-N,b-N,j,k]
+
+								tsingles[a-N,i] += self.QRPS2(i,j,a,b)*t1[a-N,k]*t1[b-N,i]*t1[c-N,j]
+
+				"""
 				for k in range(0,N):
 					for c in range(N,L):
 						tsingles[a-N,i] += self.QRPS2(k,a,c,i)*t1[c-N,k]
@@ -441,7 +472,7 @@ class CCSD:
 
 								tsingles[a-N,i] -= 0.5*klcd*t2[c-N,a-N,k,l]*t1[d-N,i]
 
-
+				"""
 				"""
 				for c in range(N,L):
 					if (c != a):
@@ -498,7 +529,7 @@ class CCSD:
 				for a in range(N,L):
 					for b in range(N,L):
 						
-						tdoubles[a-N,b-N,i,j] = self.QRPS2(i,j,a,b)
+						tdoubles[a-N,b-N,i,j] = self.QRPS2(a,b,i,j)
 						###########################################Crawford and Schaefer
 						for k in range(0,N):
 							tdoubles[a-N,b-N,i,j] -= (1.0-self.delta(k,j))*self.F[k,j]*t2[a-N,b-N,i,k] - (1-self.delta(k,i))*self.F[k,i]*t2[a-N,b-N,j,k]
@@ -512,16 +543,29 @@ class CCSD:
 							for l in range(0,N):
 								tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(k,l,i,j)*t2[a-N,b-N,k,l]
 
+								tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(k,l,i,j)*(t1[a-N,k]*t1[b-N,l] - t1[b-N,k]*t1[a-N,l])
+
 						for c in range(N,L):
 							for d in range(N,L):
 								tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(a,b,c,d)*t2[c-N,d-N,i,j]
+
+								tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(a,b,c,d)*(t1[c-N,i]*t1[d-N,j] - t1[c-N,j]*t1[d-N,i])
 
 						################## New stuff		
 
 						for k in range(0,N):
 							for c in range(N,L):
+								
 								tdoubles[a-N,b-N,i,j] += self.QRPS2(k,b,c,j)*t2[a-N,c-N,i,k] - self.QRPS2(k,a,c,j)*t2[b-N,c-N,i,k]
-								tdoubles[a-N,b-N,i,j] -= self.QRPS2(k,b,c,i)*t2[a-N,c-N,j,k] - self.QRPS2(k,a,c,i)*t2[b-N,c-N,j,k]	
+								tdoubles[a-N,b-N,i,j] -= self.QRPS2(k,b,c,i)*t2[a-N,c-N,j,k] - self.QRPS2(k,a,c,i)*t2[b-N,c-N,j,k]
+
+								tdoubles[a-N,b-N,i,j] -= self.QRPS2(k,b,i,c)*t1[a-N,k]*t1[c-N,j] - self.QRPS2(k,a,i,c)*t1[b-N,k]*t1[c-N,j]
+								tdoubles[a-N,b-N,i,j] += self.QRPS2(k,b,j,c)*t1[a-N,k]*t1[c-N,i] - self.QRPS2(k,a,j,c)*t1[b-N,k]*t1[c-N,i]
+
+								tdoubles[a-N,b-N,i,j] += self.F[k,c]*(t1[a-N,k]*t2[b-N,c-N,i,j] - t1[b-N,k]*t2[a-N,c-N,i,j])
+
+								tdoubles[a-N,b-N,i,j] += self.F[k,c]*(t1[c-N,i]*t2[a-N,b-N,j,k] - t1[c-N,j]*t2[a-N,b-N,i,k])
+	
 
 						for c in range(N,L):
 							tdoubles[a-N,b-N,i,j] += self.QRPS2(a,b,c,j)*t1[c-N,i] - self.QRPS2(a,b,c,i)*t1[c-N,j]
@@ -561,27 +605,19 @@ class CCSD:
 										tdoubles[a-N,b-N,i,j] += klcd_4*(t1[c-N,i]*t1[a-N,k]*t1[d-N,j]*t1[b-N,l] - t1[c-N,i]*t1[b-N,k]*t1[d-N,j]*t1[a-N,l])
 										tdoubles[a-N,b-N,i,j] -= klcd_4*(t1[c-N,j]*t1[a-N,k]*t1[d-N,i]*t1[b-N,l] - t1[c-N,j]*t1[b-N,k]*t1[d-N,i]*t1[a-N,l])
 						
-						for k in range(0,N):
-							for l in range(0,N):
-								tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(k,l,i,j)*(t1[a-N,k]*t1[b-N,l] - t1[b-N,k]*t1[a-N,l])
-
-						for c in range(N,L):
-							for d in range(N,L):
-								tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(a,b,c,d)*(t1[c-N,i]*t1[d-N,j] - t1[c-N,j]*t1[d-N,i])
-
-						for k in range(0,N):
-							for c in range(N,L):
-								tdoubles[a-N,b-N,i,j] -= self.QRPS2(k,b,i,c)*t1[a-N,k]*t1[c-N,j] - self.QRPS2(k,a,i,c)*t1[b-N,k]*t1[c-N,j]
-								tdoubles[a-N,b-N,i,j] += self.QRPS2(k,b,j,c)*t1[a-N,k]*t1[c-N,i] - self.QRPS2(k,a,j,c)*t1[b-N,k]*t1[c-N,i]
-
-								tdoubles[a-N,b-N,i,j] += self.F[k,c]*(t1[a-N,k]*t2[b-N,c-N,i,j] - t1[b-N,k]*t2[a-N,c-N,i,j])
-
-								tdoubles[a-N,b-N,i,j] += self.F[k,c]*(t1[c-N,i]*t2[a-N,b-N,j,k] - t1[c-N,j]*t2[a-N,b-N,i,k])
-
+								
 						for k in range(0,N):
 							for l in range(0,N):
 								for c in range(N,L):
 									tdoubles[a-N,b-N,i,j] -= self.QRPS2(k,l,c,i)*t1[c-N,k]*t2[a-N,b-N,l,j] - self.QRPS2(k,l,c,j)*t1[c-N,k]*t2[a-N,b-N,l,i]
+
+									tdoubles[a-N,b-N,i,j] += self.QRPS2(k,l,i,c)*t1[a-N,l]*t2[b-N,c-N,j,k] - self.QRPS2(k,l,i,c)*t1[b-N,l]*t2[a-N,c-N,j,k]
+									tdoubles[a-N,b-N,i,j] -= self.QRPS2(k,l,j,c)*t1[a-N,l]*t2[b-N,c-N,i,k] - self.QRPS2(k,l,j,c)*t1[b-N,l]*t2[a-N,c-N,i,k]
+
+									tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(k,l,c,j)*t1[c-N,i]*t2[a-N,b-N,k,l] - 0.5*self.QRPS2(k,l,c,i)*t1[c-N,j]*t2[a-N,b-N,k,l]
+
+									tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(k,l,c,j)*t1[c-N,i]*t1[a-N,k]*t1[b-N,l] - 0.5*self.QRPS2(k,l,c,j)*t1[c-N,i]*t1[b-N,k]*t1[a-N,l]
+									tdoubles[a-N,b-N,i,j] -= 0.5*self.QRPS2(k,l,c,i)*t1[c-N,j]*t1[a-N,k]*t1[b-N,l] - 0.5*self.QRPS2(k,l,c,i)*t1[c-N,j]*t1[b-N,k]*t1[a-N,l]
 
 						for k in range(0,N):
 							for c in range(N,L):
@@ -591,18 +627,6 @@ class CCSD:
 									tdoubles[a-N,b-N,i,j] += self.QRPS2(a,k,d,c)*t1[d-N,i]*t2[b-N,c-N,j,k] - self.QRPS2(b,k,d,c)*t1[d-N,i]*t2[a-N,c-N,j,k]
 									tdoubles[a-N,b-N,i,j] -= self.QRPS2(a,k,d,c)*t1[d-N,j]*t2[b-N,c-N,i,k] - self.QRPS2(b,k,d,c)*t1[d-N,j]*t2[a-N,c-N,i,k]
 
-						for k in range(0,N):
-							for l in range(0,N):
-								for c in range(N,L):
-									tdoubles[a-N,b-N,i,j] += self.QRPS2(k,l,i,c)*t1[a-N,l]*t2[b-N,c-N,j,k] - self.QRPS2(k,l,i,c)*t1[b-N,l]*t2[a-N,c-N,j,k]
-									tdoubles[a-N,b-N,i,j] -= self.QRPS2(k,l,j,c)*t1[a-N,l]*t2[b-N,c-N,i,k] - self.QRPS2(k,l,j,c)*t1[b-N,l]*t2[a-N,c-N,i,k]
-
-									tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(k,l,c,j)*t1[c-N,i]*t2[a-N,b-N,k,l] - 0.5*self.QRPS2(k,l,c,i)*t1[c-N,j]*t2[a-N,b-N,k,l]
-
-						for k in range(0,N):
-							for c in range(N,L):
-								for d in range(N,L):
-
 									kbcd = self.QRPS2(k,b,c,d); kacd = self.QRPS2(k,a,c,d)
 
 									tdoubles[a-N,b-N,i,j] -= 0.5*(kbcd*t1[a-N,k]*t2[c-N,d-N,i,j] - kacd*t1[b-N,k]*t2[c-N,d-N,i,j])
@@ -610,12 +634,6 @@ class CCSD:
 									tdoubles[a-N,b-N,i,j] -= 0.5*(kbcd*t1[c-N,i]*t1[a-N,k]*t1[d-N,j] - kacd*t1[c-N,i]*t1[b-N,k]*t1[d-N,j])
 									tdoubles[a-N,b-N,i,j] += 0.5*(kbcd*t1[c-N,j]*t1[a-N,k]*t1[d-N,i] - kacd*t1[c-N,j]*t1[b-N,k]*t1[d-N,i])
 
-						for k in range(0,N):
-							for l in range(0,N):
-								for c in range(N,L):
-									tdoubles[a-N,b-N,i,j] += 0.5*self.QRPS2(k,l,c,j)*t1[c-N,i]*t1[a-N,k]*t1[b-N,l] - 0.5*self.QRPS2(k,l,c,j)*t1[c-N,i]*t1[b-N,k]*t1[a-N,l]
-									tdoubles[a-N,b-N,i,j] -= 0.5*self.QRPS2(k,l,c,i)*t1[c-N,j]*t1[a-N,k]*t1[b-N,l] - 0.5*self.QRPS2(k,l,c,i)*t1[c-N,j]*t1[b-N,k]*t1[a-N,l]
-																
 						################################ Old stuff
 						"""
 						for k in range(0,N):
