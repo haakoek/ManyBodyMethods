@@ -104,7 +104,7 @@ class CCSD:
 		else:
 			return 0
 
-	def map_index(self,x):
+	def map_index2(self,x):
 	
 		if(x == 0 or x == 1):
 			return 0
@@ -135,6 +135,38 @@ class CCSD:
 
 		elif (x == 18 or x == 19):
 			return 9
+
+	def map_index(self,x):
+	
+		if(x == 0 or x == 1):
+			return 1
+
+		elif(x == 2 or x == 3):
+			return 2
+
+		elif (x == 4 or x == 5):
+			return 3
+
+		elif (x == 6 or x == 7):
+			return 4
+
+		elif (x == 8 or x == 9):
+			return 5
+
+		elif (x == 10 or x == 11):
+			return 6
+
+		elif (x == 12 or x == 13):
+			return 7
+
+		elif (x == 14 or x == 15):
+			return 8
+
+		elif (x == 16 or x == 17):
+			return 9
+
+		elif (x == 18 or x == 19):
+			return 10
 
 	def spin(self,x):
 		if(   (x == 0) | (x == 2) | (x == 4) | (x == 6) | (x == 8) | (x == 10) | (x == 12) | (x == 14) | (x == 16) | (x == 18) ):
@@ -186,12 +218,13 @@ class CCSD:
 		N = self.holeStates
 		L = self.BasisFunctions
 		
+		"""
 		for i in range(0,N):
 			for a in range(N,L):
 				Dia  = self.F[i,i] - self.F[a,a]
 				tia  = self.F[i,a]/Dia
 				self.t1_old[a-N,i] = tia
-		
+		"""
 		for i in range(0,N):
 			for j in range(0,N):
 				for a in range(N,L):
@@ -319,12 +352,14 @@ class CCSD:
 		#print self.t1_old
 		
 		self.updateIntermediates()
- 
+ 		
+		#print self.t1_old
+
 		Eold = self.ECCSD(self.t1_old,self.t2_old)
-		print Eref+Eold
+		print Eref+Eold, Eold
 		
 		#Compute 1 iteration
-		t1_new = self.computeT1Amplitudes(self.t1_old,self.t2_old)
+		t1_new = self.computeT1AmplitudesWithIntermediates(self.t1_old,self.t2_old)
 		t2_new = self.computeT2AmplitudesWithIntermediates(self.t1_old,self.t2_old)
 		
 		#print t1_new
@@ -332,7 +367,7 @@ class CCSD:
 		Enew   = self.ECCSD(t1_new,t2_new)
 		
 		iters = 1
-		print Eref+Enew, abs(Enew-Eold),iters
+		print Eref+Enew, abs(Enew-Eold),iters, Enew
 		self.t1_old = t1_new
 		self.t2_old = t2_new
 
@@ -341,12 +376,13 @@ class CCSD:
 		while(abs(Enew-Eold) > self.precision):
 			self.updateIntermediates()
 			Eold   = Enew
-			t1_new = self.computeT1Amplitudes(self.t1_old,self.t2_old)
+			t1_new = self.computeT1AmplitudesWithIntermediates(self.t1_old,self.t2_old)
+			#print t1_new
 			t2_new = self.computeT2AmplitudesWithIntermediates(self.t1_old,self.t2_old)
 			Enew   = self.ECCSD(t1_new,t2_new)
 			
 			iters += 1
-			print Eref+Enew, abs(Enew-Eold), iters 
+			print Eref+Enew, abs(Enew-Eold), iters, Enew 
 			self.t1_old = t1_new
 			self.t2_old = t2_new
 			
@@ -360,14 +396,14 @@ class CCSD:
 		for i in range(0,N):
 			for a in range(N,L):
 				
-				tsingles[a-N,i] = self.F[i,a]
+				tsingles[a-N,i] = self.F[a,i]
 
 				#Crawford and Schaefer
 
 				for c in range(N,L):
 					tsingles[a-N,i] += (1.0-self.delta(c,a))*self.F[a,c]*t1[c-N,i]
 				for k in range(0,N):
-					tsingles[a-N,i] -= (1.0-self.delta(i,k))*self.F[i,k]*t1[a-N,k]
+					tsingles[a-N,i] -= (1.0-self.delta(i,k))*self.F[k,i]*t1[a-N,k]
 
 				for k in range(0,N):
 					for c in range(N,L):
@@ -380,28 +416,35 @@ class CCSD:
 				for k in range(0,N):
 					for c in range(N,L):
 						for d in range(N,L):
-							tsingles[a-N,i] += 0.5*self.QRPS2(k,a,c,d)*t2[c-N,d-N,k,i]
+							kacd = self.QRPS2(k,a,c,d)
+							tsingles[a-N,i] += 0.5*kacd*t2[c-N,d-N,k,i]
 
-							tsingles[a-N,i] -= self.QRPS2(k,a,c,d)*t1[c-N,k]*t1[d-N,i]
+							tsingles[a-N,i] -= kacd*t1[c-N,k]*t1[d-N,i]
 
 				for k in range(0,N):
 					for l in range(0,N):
 						for c in range(N,L):
-							tsingles[a-N,i] -= 0.5*self.QRPS2(k,l,c,i)*t2[c-N,a-N,k,l]
 
-							tsingles[a-N,i] -= self.QRPS2(k,l,c,i)*t1[c-N,k]*t1[a-N,l]
+							klci = self.QRPS2(k,l,c,i)
+							
+							tsingles[a-N,i] -= 0.5*klci*t2[c-N,a-N,k,l]
+
+							tsingles[a-N,i] -= klci*t1[c-N,k]*t1[a-N,l]
 
 				for k in range(0,N):
 					for l in range(0,N):
 						for c in range(N,L):
 							for d in range(N,L):
-								tsingles[a-N,i] -= self.QRPS2(k,l,c,d)*t1[c-N,k]*t1[d-N,i]*t1[a-N,l]
 
-								tsingles[a-N,i] += self.QRPS2(k,l,c,d)*t1[c-N,k]*t2[d-N,a-N,l,i]
+								klcd = self.QRPS2(k,l,c,d)
 
-								tsingles[a-N,i] -= 0.5*self.QRPS2(k,l,c,d)*t2[c-N,d-N,k,i]*t1[a-N,l]
+								tsingles[a-N,i] -= klcd*t1[c-N,k]*t1[d-N,i]*t1[a-N,l]
 
-								tsingles[a-N,i] -= 0.5*self.QRPS2(k,l,c,d)*t2[c-N,a-N,k,l]*t1[d-N,i]
+								tsingles[a-N,i] += klcd*t1[c-N,k]*t2[d-N,a-N,l,i]
+
+								tsingles[a-N,i] -= 0.5*klcd*t2[c-N,d-N,k,i]*t1[a-N,l]
+
+								tsingles[a-N,i] -= 0.5*klcd*t2[c-N,a-N,k,l]*t1[d-N,i]
 
 
 				"""
@@ -446,7 +489,7 @@ class CCSD:
 				Dia  = self.F[i,i] - self.F[a,a]
 				tsingles[a-N,i] /= Dia
 
-		return tsingles
+		return np.zeros((L-N,N))#tsingles
 
 	def computeT2Amplitudes(self,t1,t2):
 	
@@ -682,7 +725,7 @@ class CCSD:
 		L = self.BasisFunctions
 
 		tsingles = np.zeros((L-N,N))
-
+		"""
 		for i in range(0,N):
 			for a in range(N,L):
 				
@@ -726,8 +769,8 @@ class CCSD:
 
 				Dia  = self.F[i,i] - self.F[a,a]
 				tsingles[a-N,i] = tsingles[a-N,i]/Dia
-		
-		return tsingles
+		"""
+		return np.zeros((L-N,N))#tsingles
 
 	def computeT2AmplitudesWithIntermediates(self,t1,t2):
 
@@ -1123,8 +1166,8 @@ def SingleParticleEnergy(x):
 
 #################################################################################################################################################
 import sys
-inFile = open('HO_2d_10_nonzero.dat','r')
-#inFile = open('coulomb2.dat')
+#inFile = open('HO_2d_10_nonzero.dat','r')
+inFile = open('coulomb.dat')
 w  = {}
 
 for line in inFile:
@@ -1145,3 +1188,46 @@ ccsd_test = CCSD(N,L,w,oneBodyElements)
 #ccsd_test.solve()
 #ccsd_test.solveWithCCD()
 ccsd_test.solveWithIntermediates()
+
+#####
+#Brute force with t1 set to zero at all iterations:
+
+#3.253314137
+#3.15968739638
+#3.14699374557 0.0126936508082 1
+#3.14349585212 0.00349789345545 2
+#3.14236761366 0.00112823845747 3
+#3.14200235656 0.000365257095479 4
+#3.14188369589 0.000118660672445 5
+#3.14184504961 3.86462809903e-05 6
+#3.14183244118 1.26084298357e-05 7
+#3.14182832286 4.11831901667e-06 8
+#3.14182697664 1.34621628466e-06 9
+#3.14182653636 4.40282512532e-07 10
+#3.14182639232 1.44043596231e-07 11
+#3.14182634518 4.71359577064e-08 12
+#3.14182632976 1.54267210117e-08 13
+#3.14182632471 5.0493580428e-09 14
+
+#real	3m59.862s
+#user	3m58.624s
+#sys	0m0.992s
+
+#With Intermediates with t1 set to zero at all iterations:
+
+#3.253314137
+#3.15968739638
+#3.14699374557 0.0126936508082 1
+#3.14349585212 0.00349789345545 2
+#3.14236761366 0.00112823845747 3
+#3.14200235656 0.000365257095479 4
+#3.14188369589 0.000118660672445 5
+#3.14184504961 3.86462809904e-05 6
+#3.14183244118 1.26084298356e-05 7
+#3.14182832286 4.11831901662e-06 8
+#3.14182697664 1.34621628452e-06 9
+#3.14182653636 4.40282512643e-07 10
+#3.14182639232 1.44043596287e-07 11
+#3.14182634518 4.71359575954e-08 12
+#3.14182632976 1.54267209701e-08 13
+#3.14182632471 5.04935813994e-09 14
