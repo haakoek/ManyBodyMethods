@@ -104,7 +104,7 @@ class CCSD:
 		else:
 			return 0
 
-	def map_index2(self,x):
+	def map_index(self,x):
 	
 		if(x == 0 or x == 1):
 			return 0
@@ -136,7 +136,7 @@ class CCSD:
 		elif (x == 18 or x == 19):
 			return 9
 
-	def map_index(self,x):
+	def map_index2(self,x):
 	
 		if(x == 0 or x == 1):
 			return 1
@@ -1166,8 +1166,8 @@ def SingleParticleEnergy(x):
 
 #################################################################################################################################################
 import sys
-#inFile = open('HO_2d_10_nonzero.dat','r')
-inFile = open('coulomb.dat')
+inFile = open('HO_2d_10_nonzero.dat','r')
+#inFile = open('coulomb.dat')
 w  = {}
 
 for line in inFile:
