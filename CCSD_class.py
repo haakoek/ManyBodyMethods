@@ -31,6 +31,18 @@ class CCSD:
 						self.tau[a-N,b-N,i,j]  = self.computeTau(a,b,i,j)
 						self.tau2[a-N,b-N,i,j] = self.computeTau2(a,b,i,j)
 
+		for c in range(N,L):
+			for k in range(0,N):
+				self.F1[k,c-N] = self.computeF1(k,c)
+
+		for k in range(0,N):
+			for i in range(0,N):
+				self.F2[k,i] = self.computeF2(k,i)
+
+		for a in range(N,L):
+			for c in range(N,L):
+				self.F3[a-N,c-N] = self.computeF3(a,c)
+
 		for k in range(0,N):
 			for l in range(0,N):
 				for i in range(0,N):
@@ -49,17 +61,7 @@ class CCSD:
 					for j in range(0,N):
 						self.W3[m,b-N,e-N,j] = self.computeW3(m,b,e,j)
 		
-		for c in range(N,L):
-			for k in range(0,N):
-				self.F1[k,c-N] = self.computeF1(k,c)
-
-		for k in range(0,N):
-			for i in range(0,N):
-				self.F2[k,i] = self.computeF2(k,i)
-
-		for a in range(N,L):
-			for c in range(N,L):
-				self.F3[a-N,c-N] = self.computeF3(a,c)
+		
 		
 	def delta(self,i,j):
 		if(i == j):
@@ -679,6 +681,8 @@ class CCSD:
 
 		for e in range(N,L):
 			val += self.QRPS2(m,n,i,e)*self.t1_old[e-N,j] - self.QRPS2(m,n,j,e)*self.t1_old[e-N,i]
+		
+		for e in range(N,L):
 			for f in range(N,L):
 				val += 0.25*self.QRPS2(m,n,e,f)*self.tau[e-N,f-N,i,j]
 
@@ -759,15 +763,13 @@ class CCSD:
 
 	def computeF3(self,a,e):
 
-		#Doublechecked: I 
-
 		N = self.holeStates
 		L = self.BasisFunctions
 
-		val = (1.0-self.delta(a,e))*self.F[a,e]
+		val = (1-self.delta(a,e))*self.F[a,e]
 
 		for m in range(0,N):
-			val -= 0.5*self.F[e-N,m]*self.t1_old[a-N,m]
+			val -= 0.5*self.F[m,e]*self.t1_old[a-N,m]
 
 		for m in range(0,N):
 			for n in range(0,N):
@@ -778,14 +780,6 @@ class CCSD:
 			for f in range(N,L):
 				val += self.QRPS2(m,a,f,e)*self.t1_old[f-N,m]
 
-		"""
-		for k in range(0,N):
-			val -= self.t1_old[a-N,k]*self.F1[c-N,k]
-			for d in range(N,L):
-				val -= self.QRPS2(c,d,k,a)*self.t1_old[d-N,k]
-				for l in range(0,N):
-					val += 0.5*self.QRPS2(c,d,k,l)*self.t2_old[a-N,d-N,k,l]
-		"""
 		return val
 
 def delta(i,j):
@@ -824,7 +818,7 @@ def map_index_SPenergy(x):
 
 	elif (x == 18 or x == 19):
 		return 9
-def map_index(x):
+def map_index2(x):
 	
 	if(x == 0 or x == 1):
 		return 0
@@ -855,7 +849,7 @@ def map_index(x):
 
 	elif (x == 18 or x == 19):
 		return 9
-def map_index2(x):
+def map_index(x):
 	
 	if(x == 0 or x == 1):
 		return 1
@@ -928,7 +922,7 @@ def QRPS(twoBodyIntegrals,q,r,p,s):
 #################################################################################################################################################
 import sys
 #inFile = open('HO_2d_10_nonzero.dat','r')
-inFile = open('coulomb2.dat')
+inFile = open('coulomb.dat')
 w  = {}
 
 for line in inFile:
