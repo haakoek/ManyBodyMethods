@@ -203,7 +203,7 @@ class CCSD:
 			Enew   = self.ECCSD(t1_new,t2_new)
 			
 			iters += 1
-			print Eref+Enew, abs(Enew-Eold), iters
+			print "Enew=%.9f, |E_{%d}-E_{%d}| = %g"  % (Eref+Enew,iters,iters-1, abs(Enew-Eold))
 			self.t1_old = t1_new
 			self.t2_old = t2_new
 
@@ -748,7 +748,7 @@ class CCSD:
 		val = (1.0-self.delta(m,i))*self.F[m,i]
 		
 		for e in range(N,L):
-			val += 0.5*self.F1[m,e-N]*self.t1_old[e-N,i]
+			val += 0.5*self.F[m,e]*self.t1_old[e-N,i]
 
 		for e in range(N,L):
 			for n in range(0,N):
@@ -930,8 +930,6 @@ for line in inFile:
 	key = tmp[0] + tmp[1] + tmp[2] + tmp[3]
 	val = float(tmp[4])
 	w[key]  = val
-
-
 
 N = int(sys.argv[1]); L = int(sys.argv[2])
 w2 = np.zeros((L,L,L,L))
