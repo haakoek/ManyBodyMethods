@@ -964,7 +964,7 @@ class CCSD:
 		val = self.QRPS2(c,i,k,l)
 
 		for d in range(N,L):
-			val += self.QRPS2(c,d,k,l)*self.t1_old[c-N,i]
+			val += self.QRPS2(c,d,k,l)*self.t1_old[d-N,i]
 		return val
 
 	def computeW3CCD(self,k,l,c,i):
@@ -1066,11 +1066,11 @@ class CCSD:
 		val = (1.0-self.delta(k,i))*self.F[k,i]
 
 		for c in range(N,L):
-			val += self.t1_old[c-N,i]*self.computeF1(c,k)
+			val += self.t1_old[c-N,i]*self.F1[c-N,k]
 			for l in range(0,N):
 				val += self.QRPS2(i,c,k,l)*self.t1_old[c-N,l]
 				for d in range(N,L):
-					val += 0.5*self.QRPS2(c,d,k,l)*self.t2_old[c-N,d-N,i,l]
+					val += self.QRPS2(c,d,k,l)*(0.5*self.t2_old[c-N,d-N,i,l]+self.t1_old[d-N,l])
 		return val
 
 	def computeF2CCD(self,k,i):
