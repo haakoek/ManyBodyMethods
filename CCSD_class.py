@@ -216,7 +216,7 @@ class CCSD:
 
 		for i in range(0,N):
 			for a in range(N,L):
-				tsingles[a-N,i] = self.computeZ1(a,i)/(self.F[i,i]-self.F[a,a])
+				tsingles[a-N,i] = self.computeT1AmplitudesSG(a,i)/(self.F[i,i]-self.F[a,a])
 
 		return tsingles
 
@@ -232,11 +232,11 @@ class CCSD:
 				for i in range(0,N):
 					for j in range(0,N):
 						Dabij = self.F[i,i] + self.F[j,j] - self.F[a,a] - self.F[b,b]
-						tdoubles[a-N,b-N,i,j] = self.computeZ2(a,b,i,j)/Dabij
+						tdoubles[a-N,b-N,i,j] = self.computeT2AmplitudesSG(a,b,i,j)/Dabij
 
 		return tdoubles
 
-	def computeZ1(self,a,i):
+	def computeT1AmplitudesSG(self,a,i):
 		
 		val = self.F[i,a]
 
@@ -264,7 +264,7 @@ class CCSD:
 		
 		return val
 
-	def computeZ2(self,a,b,i,j):
+	def computeT2AmplitudesSG(self,a,b,i,j):
 
 		val = self.QRPS2(i,j,a,b)
 
