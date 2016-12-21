@@ -60,9 +60,7 @@ class CCSD:
 				for e in range(N,L):
 					for j in range(0,N):
 						self.W3[m,b-N,e-N,j] = self.computeW3(m,b,e,j)
-		
-		
-		
+				
 	def delta(self,i,j):
 		if(i == j):
 			return 1.0
@@ -194,7 +192,7 @@ class CCSD:
 		print Eref+Enew, abs(Enew-Eold),iters
 		self.t1_old = t1_new
 		self.t2_old = t2_new
-
+		
 		while(abs(Enew-Eold) > self.precision):
 			self.updateIntermediates()
 			Eold   = Enew
@@ -206,7 +204,7 @@ class CCSD:
 			print "Enew=%.9f, |E_{%d}-E_{%d}| = %g"  % (Eref+Enew,iters,iters-1, abs(Enew-Eold))
 			self.t1_old = t1_new
 			self.t2_old = t2_new
-
+			
 	def computeT1SG(self,t1,t2):
 
 		N = self.holeStates
@@ -953,46 +951,3 @@ ccsd_test = CCSD(N,L,w2,oneBodyElements)
 #ccsd_test.solve()
 #ccsd_test.solveWithCCD()
 ccsd_test.solveWithIntermediates()
-
-#####
-#Brute force with t1 set to zero at all iterations:
-
-#3.253314137
-#3.15968739638
-#3.14699374557 0.0126936508082 1
-#3.14349585212 0.00349789345545 2
-#3.14236761366 0.00112823845747 3
-#3.14200235656 0.000365257095479 4
-#3.14188369589 0.000118660672445 5
-#3.14184504961 3.86462809903e-05 6
-#3.14183244118 1.26084298357e-05 7
-#3.14182832286 4.11831901667e-06 8
-#3.14182697664 1.34621628466e-06 9
-#3.14182653636 4.40282512532e-07 10
-#3.14182639232 1.44043596231e-07 11
-#3.14182634518 4.71359577064e-08 12
-#3.14182632976 1.54267210117e-08 13
-#3.14182632471 5.0493580428e-09 14
-
-#real	3m59.862s
-#user	3m58.624s
-#sys	0m0.992s
-
-#With Intermediates with t1 set to zero at all iterations:
-
-#3.253314137
-#3.15968739638
-#3.14699374557 0.0126936508082 1
-#3.14349585212 0.00349789345545 2
-#3.14236761366 0.00112823845747 3
-#3.14200235656 0.000365257095479 4
-#3.14188369589 0.000118660672445 5
-#3.14184504961 3.86462809904e-05 6
-#3.14183244118 1.26084298356e-05 7
-#3.14182832286 4.11831901662e-06 8
-#3.14182697664 1.34621628452e-06 9
-#3.14182653636 4.40282512643e-07 10
-#3.14182639232 1.44043596287e-07 11
-#3.14182634518 4.71359575954e-08 12
-#3.14182632976 1.54267209701e-08 13
-#3.14182632471 5.04935813994e-09 14
